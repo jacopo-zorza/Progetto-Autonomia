@@ -10,7 +10,6 @@
 - Ricerca e filtro degli oggetti disponibili vicino alla posizione dell’utente
 - Sistema di messaggistica tra venditore e acquirente
 - Pagamento integrato (PayPal, Stripe, ecc.)
-- Notifiche per nuovi oggetti disponibili nella zona
 
 ## Struttura tecnica 
 
@@ -36,3 +35,4 @@
 - Supporto multilingua
 - Versione mobile (web app PWA o app nativa)
 - Modalità chiaro/scuro
+- Notifiche per nuovi oggetti disponibili nella zona
