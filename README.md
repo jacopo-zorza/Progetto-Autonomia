@@ -1,6 +1,6 @@
 # Progetto-Autonomia 
 
-# Progetto: Applicazione per la vendita di oggetti usati in viaggio
+# Applicazione per la vendita di oggetti usati in viaggio
 
 ## Idee e funzionalità principali
 
@@ -14,7 +14,7 @@
 ## Struttura tecnica suggerita
 
 - Backend: Python (Flask) per gestire utenti, oggetti, transazioni e API
-- Frontend: HTML, CSS, JavaScript (possibile uso di framework come React)
+- Frontend: HTML, CSS, TypeScript (TS) (possibile uso di framework come React)
 - Database: MySQL o FireBase per memorizzare utenti, oggetti e transazioni
 - Geolocalizzazione: API Google Maps o OpenStreetMap per mostrare la posizione degli oggetti
 - Hosting: Heroku, AWS o DigitalOcean
