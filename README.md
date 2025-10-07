@@ -12,7 +12,7 @@
 - Pagamento integrato (PayPal, Stripe, ecc.)
 - Notifiche per nuovi oggetti disponibili nella zona
 
-## Struttura tecnica suggerita
+## Struttura tecnica 
 
 - Backend: Python (Flask) per gestire utenti, oggetti, transazioni e API
 - Frontend: HTML, CSS, TypeScript (TS) (possibile uso di framework come React)
