@@ -2,6 +2,7 @@
 
 # Applicazione per la vendita di oggetti usati in viaggio
 
+
 ## Idee e funzionalità principali
 
 - Registrazione e login utenti (acquirenti e venditori)
