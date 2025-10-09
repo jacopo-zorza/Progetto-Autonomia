@@ -4,7 +4,6 @@
 
 ### 📋 Documentazione:
 - `1.1_DATABASE_CONFIG.md` - Configurazione e opzioni database
-- `project_structure.md` - Struttura completa del progetto
 - `README.md` - Questo file di riepilogo
 
 ### 💻 Codice:
@@ -12,9 +11,11 @@
 - `database_manager.py` - Manager database con auto-aggiornamenti real-time
 - `database_config.py` - Configurazione per PostgreSQL produzione
 
-### 🧪 Test:
-- `test_database.py` - Test completi di tutte le funzionalità
+### 🗃️ Database:
 - `app.db` - Database SQLite pulito e pronto
+
+### ⚙️ Configurazione:
+- `.gitignore` - Ignora file temporanei
 
 ## ✅ Funzionalità verificate:
 
@@ -25,14 +26,47 @@
 5. **Sistema notifiche** ✅
 6. **Protezione errori** ✅
 
+## 🔄 Struttura del progetto:
+
+```
+1_PROGETTAZIONE_BASE/
+├── .gitignore                  # Configurazione Git
+├── 1.1_DATABASE_CONFIG.md      # Configurazione database
+├── README.md                   # Questo file
+├── app.db                      # Database SQLite pulito
+├── database_config.py          # Config PostgreSQL produzione
+├── database_manager.py         # Manager con real-time updates
+└── database_schema.sql         # Schema SQL completo
+```
+
+## 💡 Differenza SQLite vs PostgreSQL:
+
+### 🔴 SQLite (solo sviluppo):
+- Un utente alla volta può scrivere
+- Altri utenti devono aspettare in coda
+- Perfetto per test locali
+
+### 🟢 PostgreSQL (produzione):
+- Centinaia di utenti simultanei
+- Zero attese, zero code
+- Necessario per app reale
+
 ## 🚀 Status: PRONTO PER PUNTO 2.1
 
 Il database è completamente funzionante e testato. 
 Tutti i file sono ottimizzati e pronti per l'integrazione con Flask.
 
-## 🔧 Test rapido:
+## 🔧 Test rapido del database:
 ```bash
-python test_database.py
+# Se servisse testare il database:
+python -c "
+from database_manager import DatabaseManager, insert_user
+db = DatabaseManager('sqlite')
+db.connect()
+db.create_tables()
+print('✅ Database funzionante')
+db.close()
+"
 ```
 
 ## 📋 Prossimo passo:
