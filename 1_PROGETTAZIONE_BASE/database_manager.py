@@ -15,25 +15,35 @@ import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 class DatabaseManager:
-    def __init__(self, db_type="postgresql", connection_string=None):
+    def __init__(self, db_type="sqlite", connection_string=None, db_path=None):
         """
         Inizializza il database manager
         db_type: 'postgresql' per produzione (RACCOMANDATO), 'sqlite' solo per test
         connection_string: stringa di connessione per PostgreSQL
+        db_path: path per file SQLite
         """
         self.db_type = db_type
         self.connection_string = connection_string
+        self.db_path = db_path
         self.connection = None
         self._connection_pool = []
         self.auto_commit = True  # IMPORTANTE: commit automatico per aggiornamenti real-time
         
-    def connect(self):
+        # Connessione automatica
+        self.connect(db_path)
+        
+    def connect(self, db_path=None):
         """Crea connessione al database con autocommit per real-time"""
         try:
             if self.db_type == "sqlite":
-                self.connection = sqlite3.connect('app.db', check_same_thread=False)
+                # Usa path specifico se fornito, altrimenti default
+                if db_path:
+                    db_file = os.path.abspath(db_path)
+                else:
+                    db_file = os.path.join(os.path.dirname(__file__), 'app.db')
+                
+                self.connection = sqlite3.connect(db_file, check_same_thread=False)
                 self.connection.row_factory = sqlite3.Row
-                # IMPORTANTE: SQLite non supporta bene utenti multipli simultanei
                 print("⚠️  ATTENZIONE: SQLite NON supporta utenti multipli! Usa PostgreSQL per produzione")
                 
             elif self.db_type == "postgresql":
@@ -197,6 +207,26 @@ class DatabaseManager:
             ORDER BY distance_km
             """
             return self.execute_query(query, (lat, lng, lat, True, False, radius_km))
+
+    def get_all_users(self):
+        """Ottiene tutti gli utenti"""
+        query = "SELECT * FROM users ORDER BY created_at DESC"
+        try:
+            result = self.execute_query(query)
+            return result if result else []
+        except Exception as e:
+            print(f"❌ Errore query: {e}")
+            return []
+    
+    def get_all_items(self):
+        """Ottiene tutti gli oggetti"""
+        query = "SELECT * FROM items ORDER BY created_at DESC"
+        try:
+            result = self.execute_query(query)
+            return result if result else []
+        except Exception as e:
+            print(f"❌ Errore query: {e}")
+            return []
 
     def close(self):
         """Chiude la connessione"""

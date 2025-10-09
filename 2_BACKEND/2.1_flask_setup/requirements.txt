@@ -1,0 +1,15 @@
+# Dipendenze essenziali per Flask Setup
+# Installa con: pip install -r requirements.txt
+
+# Framework principale
+Flask==3.1.2
+
+# CORS per permettere richieste dal frontend
+Flask-CORS==6.0.1
+
+# Database
+psycopg2-binary==2.9.10  # Per PostgreSQL produzione
+# sqlite3 è incluso in Python standard library
+
+# Utilities
+python-dotenv==1.1.1     # Per variabili d'ambiente
