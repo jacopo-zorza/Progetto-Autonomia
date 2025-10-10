@@ -7,9 +7,14 @@ Flask==3.1.2
 # CORS per permettere richieste dal frontend
 Flask-CORS==6.0.1
 
-# Database
+# Database e ORM
+Flask-SQLAlchemy==3.1.1  # ORM per gestione database
 psycopg2-binary==2.9.10  # Per PostgreSQL produzione
 # sqlite3 è incluso in Python standard library
+
+# Autenticazione e sicurezza
+Flask-JWT-Extended==4.7.1  # JWT tokens per autenticazione
+bcrypt==5.0.0              # Password hashing sicuro
 
 # Utilities
 python-dotenv==1.1.1     # Per variabili d'ambiente

@@ -1,20 +1,26 @@
-# 2.1 - Setup Flask Base
-# Configurazione iniziale dell'applicazione Flask
+# 2.1 - Setup Flask Base + 2.2 Models Integration + 2.3 Auth API
+# Configurazione iniziale dell'applicazione Flask con SQLAlchemy e JWT
 
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager
+from datetime import timedelta
 import os
 import sys
 
-# Aggiungi il path del database al sistema
+# Aggiungi i path necessari al sistema
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '1_PROGETTAZIONE_BASE'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '2.2_models'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '2.3_auth_api'))
 
 from database_manager import DatabaseManager
+from models import db, User, Item, Message, Transaction, Review
+from auth_routes import auth_bp
 
 class FlaskApp:
     def __init__(self, db_type="sqlite", db_connection_string=None, db_path=None):
         """
-        Inizializza l'applicazione Flask
+        Inizializza l'applicazione Flask con SQLAlchemy
         db_type: 'sqlite' per sviluppo, 'postgresql' per produzione
         db_connection_string: stringa di connessione per PostgreSQL
         db_path: path del database SQLite (se None, usa default)
@@ -28,17 +34,53 @@ class FlaskApp:
         self.app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
         self.app.config['DEBUG'] = True  # Disabilita in produzione
         
+        # Configurazione JWT
+        self.app.config['JWT_SECRET_KEY'] = 'jwt-secret-key-change-in-production'
+        self.app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
+        self.app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
+        
+        # Inizializza JWT Manager
+        self.jwt = JWTManager(self.app)
+        
         # Configurazione database
         self.db_type = db_type
         self.db_connection_string = db_connection_string
         self.db_path = db_path
         self.db = None
         
-        # Inizializza database
+        # Configurazione SQLAlchemy
+        self._configure_sqlalchemy()
+        
+        # Inizializza database legacy (manteniamo per compatibilità)
         self._init_database()
         
         # Registra le routes
         self._register_routes()
+    
+    def _configure_sqlalchemy(self):
+        """Configura SQLAlchemy per l'applicazione"""
+        if self.db_type == "sqlite":
+            # Usa path specifico se fornito, altrimenti default
+            if self.db_path:
+                db_file = os.path.abspath(self.db_path)
+            else:
+                db_file = os.path.join(os.path.dirname(__file__), '..', '..', '1_PROGETTAZIONE_BASE', 'app.db')
+            
+            self.app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_file}'
+            
+        elif self.db_type == "postgresql":
+            self.app.config['SQLALCHEMY_DATABASE_URI'] = self.db_connection_string
+        
+        # Disabilita tracking delle modifiche (risparmia memoria)
+        self.app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        
+        # Inizializza SQLAlchemy con l'app Flask
+        db.init_app(self.app)
+        
+        # Crea le tabelle se non esistono
+        with self.app.app_context():
+            db.create_all()
+            print(f"✅ SQLAlchemy configurato con {self.db_type}")
     
     def _init_database(self):
         """Inizializza la connessione al database"""
@@ -71,6 +113,9 @@ class FlaskApp:
     def _register_routes(self):
         """Registra tutte le routes dell'applicazione"""
         
+        # Registra blueprint autenticazione
+        self.app.register_blueprint(auth_bp)
+        
         @self.app.route('/')
         def home():
             """Homepage dell'applicazione"""
@@ -82,7 +127,13 @@ class FlaskApp:
                 "endpoints": {
                     "home": "/",
                     "health": "/health",
-                    "api_status": "/api/status"
+                    "api_status": "/api/status",
+                    "auth": {
+                        "register": "/api/auth/register",
+                        "login": "/api/auth/login",
+                        "me": "/api/auth/me",
+                        "refresh": "/api/auth/refresh"
+                    }
                 }
             })
         
@@ -114,15 +165,47 @@ class FlaskApp:
             return jsonify({
                 "api_version": "1.0.0",
                 "database_type": self.db_type,
+                "sqlalchemy": "active",
+                "jwt_auth": "active",
                 "features": {
-                    "user_management": "planned",
-                    "item_management": "planned", 
-                    "messaging": "planned",
+                    "authentication": "active",
+                    "user_management": "models ready",
+                    "item_management": "models ready", 
+                    "messaging": "models ready",
                     "geolocation": "planned",
-                    "payments": "planned"
+                    "payments": "models ready"
                 },
-                "current_phase": "2.1 - Flask Setup"
+                "current_phase": "2.3 - Auth API Integrated"
             })
+        
+        @self.app.route('/api/models/test')
+        def test_models():
+            """Test endpoint per verificare i modelli SQLAlchemy"""
+            try:
+                # Conta i record in ogni tabella
+                users_count = User.query.count()
+                items_count = Item.query.count()
+                messages_count = Message.query.count()
+                transactions_count = Transaction.query.count()
+                reviews_count = Review.query.count()
+                
+                return jsonify({
+                    "status": "success",
+                    "message": "Modelli SQLAlchemy funzionanti",
+                    "models": {
+                        "users": users_count,
+                        "items": items_count,
+                        "messages": messages_count,
+                        "transactions": transactions_count,
+                        "reviews": reviews_count
+                    }
+                }), 200
+                
+            except Exception as e:
+                return jsonify({
+                    "status": "error",
+                    "message": str(e)
+                }), 500
     
     def run(self, host='0.0.0.0', port=5000, debug=True):
         """Avvia l'applicazione Flask"""

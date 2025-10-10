@@ -9,12 +9,14 @@ Marketplace digitale per viaggiatori che vogliono vendere o acquistare oggetti u
 ### ✅ **COMPLETATO**
 - **1.1 Database**: Sistema completo SQLite/PostgreSQL con real-time updates
 - **2.1 Flask Setup**: API base con configurazione multi-ambiente
+- **2.2 Models**: Modelli SQLAlchemy integrati (User, Item, Message, Transaction, Review)
+- **2.3 Auth API**: Autenticazione JWT completa (registrazione, login, token)
 
 ### 🔄 **IN SVILUPPO**
-- **2.2 Models**: Prossimo obiettivo - Modelli SQLAlchemy
+- **2.4 Items API**: Prossimo obiettivo - CRUD oggetti in vendita
 
 ### 📋 **PIANIFICATO**
-- 2.3-2.7: API Backend (Auth, Items, Messages, Geo, Payments)
+- 2.5-2.7: API Backend (Messages, Geo, Payments)
 - 3.1-3.8: Frontend HTML/CSS/JavaScript
 - 4.1-4.4: Integrazioni esterne
 - 5.0: Testing e Deploy
