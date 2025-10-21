@@ -12,10 +12,12 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '1_PROGETTAZIONE_BASE'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '2.2_models'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '2.3_auth_api'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '2.4_items_api'))
 
 from database_manager import DatabaseManager
 from models import db, User, Item, Message, Transaction, Review
 from auth_routes import auth_bp
+from items_routes import items_bp
 
 class FlaskApp:
     def __init__(self, db_type="sqlite", db_connection_string=None, db_path=None):
@@ -116,6 +118,9 @@ class FlaskApp:
         # Registra blueprint autenticazione
         self.app.register_blueprint(auth_bp)
         
+        # Registra blueprint items
+        self.app.register_blueprint(items_bp)
+        
         @self.app.route('/')
         def home():
             """Homepage dell'applicazione"""
@@ -133,6 +138,14 @@ class FlaskApp:
                         "login": "/api/auth/login",
                         "me": "/api/auth/me",
                         "refresh": "/api/auth/refresh"
+                    },
+                    "items": {
+                        "list": "/api/items (GET)",
+                        "create": "/api/items (POST)",
+                        "detail": "/api/items/<id> (GET)",
+                        "update": "/api/items/<id> (PUT)",
+                        "delete": "/api/items/<id> (DELETE)",
+                        "my_items": "/api/items/my-items (GET)"
                     }
                 }
             })
@@ -169,13 +182,14 @@ class FlaskApp:
                 "jwt_auth": "active",
                 "features": {
                     "authentication": "active",
-                    "user_management": "models ready",
-                    "item_management": "models ready", 
+                    "user_management": "active",
+                    "item_management": "active", 
+                    "item_search_filters": "active",
+                    "geolocation": "active",
                     "messaging": "models ready",
-                    "geolocation": "planned",
                     "payments": "models ready"
                 },
-                "current_phase": "2.3 - Auth API Integrated"
+                "current_phase": "2.4 - Items API Integrated"
             })
         
         @self.app.route('/api/models/test')
