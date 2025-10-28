@@ -1,0 +1,8 @@
+{
+  "name": "Progetto Autonomia",
+  "short_name": "Autonomia",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "icons": []
+}

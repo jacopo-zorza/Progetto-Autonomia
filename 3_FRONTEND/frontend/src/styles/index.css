@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Piccoli stili iniziali */
+html, body, #root { height: 100%; }
+.container { max-width: 1024px; }
+
+:root{
+	--pa-white: #FFFBFE;
+	--pa-dark: #040F0F;
+	/* Assunto: colore mancante corretto come #024823 */
+	--pa-deep-green: #024823;
+	--pa-green: #2BA84A;
+}
+
+body{ background: var(--pa-white); color: var(--pa-dark); }
+
+.pa-header{ background: linear-gradient(90deg,var(--pa-white),var(--pa-deep-green)); }
+.pa-link{ color: var(--pa-deep-green); }
+.pa-btn{ background: var(--pa-green); color: white; padding: .5rem .75rem; border-radius: .375rem }
+
+/* Card e layout */
+.pa-card{ background: white; border: 1px solid rgba(4,15,15,0.06); border-radius: .5rem; padding: 1rem; box-shadow: 0 6px 18px rgba(2,40,24,0.04) }
+.pa-heading{ color: var(--pa-deep-green); font-weight: 700 }
+.text-muted{ color: rgba(4,15,15,0.6) }
+
+/* Responsive container already provided by tailwind, but ensure padding */
+.container{ padding-left: 1rem; padding-right: 1rem }
+
