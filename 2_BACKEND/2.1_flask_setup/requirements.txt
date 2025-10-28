@@ -18,3 +18,7 @@ bcrypt==5.0.0              # Password hashing sicuro
 
 # Utilities
 python-dotenv==1.1.1     # Per variabili d'ambiente
+requests==2.32.3         # HTTP requests per API esterne
+
+# Image processing
+Pillow==11.0.0           # Manipolazione immagini

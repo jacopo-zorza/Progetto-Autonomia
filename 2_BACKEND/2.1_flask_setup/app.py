@@ -13,11 +13,19 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '1_PROGETTAZ
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '2.2_models'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '2.3_auth_api'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '2.4_items_api'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '2.5_messages_api'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '2.6_geolocation_api'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '2.7_payments_api'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '2.8_images_api'))
 
 from database_manager import DatabaseManager
 from models import db, User, Item, Message, Transaction, Review
 from auth_routes import auth_bp
 from items_routes import items_bp
+from messages_routes import messages_bp
+from geolocation_routes import geolocation_bp
+from payments_routes import payments_bp
+from images_routes import images_bp
 
 class FlaskApp:
     def __init__(self, db_type="sqlite", db_connection_string=None, db_path=None):
@@ -121,6 +129,18 @@ class FlaskApp:
         # Registra blueprint items
         self.app.register_blueprint(items_bp)
         
+        # Registra blueprint messages
+        self.app.register_blueprint(messages_bp)
+        
+        # Registra blueprint geolocation
+        self.app.register_blueprint(geolocation_bp)
+        
+        # Registra blueprint payments
+        self.app.register_blueprint(payments_bp)
+        
+        # Registra blueprint images
+        self.app.register_blueprint(images_bp)
+        
         @self.app.route('/')
         def home():
             """Homepage dell'applicazione"""
@@ -146,6 +166,25 @@ class FlaskApp:
                         "update": "/api/items/<id> (PUT)",
                         "delete": "/api/items/<id> (DELETE)",
                         "my_items": "/api/items/my-items (GET)"
+                    },
+                    "messages": {
+                        "send": "/api/messages (POST)",
+                        "inbox": "/api/messages/inbox (GET)",
+                        "sent": "/api/messages/sent (GET)",
+                        "conversations": "/api/messages/conversations (GET)",
+                        "conversation": "/api/messages/conversation/<user_id> (GET)",
+                        "mark_read": "/api/messages/<id>/read (PUT)",
+                        "unread_count": "/api/messages/unread-count (GET)"
+                    },
+                    "payments": {
+                        "create_transaction": "/api/payments/transaction (POST)",
+                        "process_payment": "/api/payments/process/<id> (POST)",
+                        "confirm_cash": "/api/payments/confirm-cash/<id> (POST)",
+                        "cancel": "/api/payments/cancel/<id> (POST)",
+                        "get_transaction": "/api/payments/transaction/<id> (GET)",
+                        "my_purchases": "/api/payments/my-purchases (GET)",
+                        "my_sales": "/api/payments/my-sales (GET)",
+                        "balance": "/api/payments/balance (GET)"
                     }
                 }
             })
@@ -186,10 +225,12 @@ class FlaskApp:
                     "item_management": "active", 
                     "item_search_filters": "active",
                     "geolocation": "active",
-                    "messaging": "models ready",
-                    "payments": "models ready"
+                    "geolocation_advanced": "active",
+                    "messaging": "active",
+                    "image_upload": "active",
+                    "payments": "active"
                 },
-                "current_phase": "2.4 - Items API Integrated"
+                "current_phase": "2.7 - Payments API Integrated"
             })
         
         @self.app.route('/api/models/test')

@@ -32,9 +32,11 @@ class Item(db.Model):
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
     price = db.Column(db.Float, nullable=False)
+    image_url = db.Column(db.String(500), nullable=True)  # Percorso immagine principale
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
     seller_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False, index=True)
+    is_sold = db.Column(db.Boolean, default=False, nullable=False)  # Item venduto o meno
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     
     # Relazioni
@@ -63,9 +65,14 @@ class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     item_id = db.Column(db.Integer, db.ForeignKey('item.id', ondelete='CASCADE'), nullable=False, index=True)
     buyer_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False, index=True)
+    seller_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False, index=True)
     amount = db.Column(db.Float, nullable=False)
-    status = db.Column(db.String(20), nullable=False, default='pending')  # pending, completed, cancelled
+    status = db.Column(db.String(20), nullable=False, default='pending')  # pending, completed, cancelled, failed
+    payment_method = db.Column(db.String(50), nullable=True)  # stripe, paypal, cash
+    payment_id = db.Column(db.String(200), nullable=True)  # ID transazione provider esterno
+    notes = db.Column(db.Text, nullable=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    completed_at = db.Column(db.DateTime, nullable=True)
     
     def __repr__(self):
         return f'<Transaction {self.id} - {self.status}>'
