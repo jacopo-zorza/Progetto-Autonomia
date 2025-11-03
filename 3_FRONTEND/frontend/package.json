@@ -1,5 +1,5 @@
 {
-  "name": "progetto-autonomia-frontend",
+  "name": "fastseller-frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -36,5 +36,10 @@
     "vite": "^5.0.0",
     "vite-plugin-pwa": "^1.0.0",
     "vitest": "^0.34.0"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }

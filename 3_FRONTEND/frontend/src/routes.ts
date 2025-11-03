@@ -4,6 +4,7 @@ import App from './App'
 import Home from './pages/3_2_home/Home'
 import Login from './pages/3_3_auth/Login'
 import Register from './pages/3_3_auth/Register'
+import Forgot from './pages/3_3_auth/Forgot'
 import Dashboard from './pages/3_8_profile/Dashboard'
 import About from './pages/3_2_home/About'
 import ItemsList from './pages/3_5_items/ItemsList'
@@ -28,6 +29,7 @@ export default function Router(): React.ReactElement {
   React.createElement(Route, { path: 'about', element: React.createElement(About, null) }),
   React.createElement(Route, { path: 'login', element: React.createElement(Login, null) }),
   React.createElement(Route, { path: 'register', element: React.createElement(Register, null) }),
+  React.createElement(Route, { path: 'forgot', element: React.createElement(Forgot, null) }),
   React.createElement(Route, { path: 'items', element: React.createElement(ItemsList, null) }),
   React.createElement(Route, { path: 'items/:id', element: React.createElement(ItemDetail, null) }),
   React.createElement(Route, { path: 'create', element: React.createElement(PrivateRoute, null, React.createElement(CreateItem, null)) }),

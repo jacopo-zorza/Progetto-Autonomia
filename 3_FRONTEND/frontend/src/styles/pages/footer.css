@@ -1,0 +1,24 @@
+/* Footer styles inspired by Vinted */
+
+.fs-footer { background:#fafafa; border-top:1px solid #e6e6e6; padding:32px 0; color:#374151; }
+.fs-footer-inner { max-width:1100px; margin:0 auto; padding:0 16px; }
+.fs-cols { display:flex; gap:32px; flex-wrap:wrap; margin-bottom:20px; }
+.fs-col { flex:1 1 200px; min-width:160px; }
+.fs-col-title { font-weight:700; margin-bottom:12px; color:#111827; }
+.fs-col ul { list-style:none; padding:0; margin:0; }
+.fs-col li { margin-bottom:8px; }
+.fs-col a { color:#374151; text-decoration:none; }
+.fs-col a:hover { color:#111827; text-decoration:underline; }
+
+.fs-download .fs-store-links { display:flex; gap:8px; }
+.fs-store { display:inline-block; padding:8px 12px; background:#fff; border:1px solid #e5e7eb; border-radius:8px; text-decoration:none; color:#111827; }
+.fs-store:hover { background:#f3f4f6; }
+
+.fs-bottom { display:flex; justify-content:space-between; align-items:center; border-top:1px solid #eee; padding-top:12px; font-size:0.9rem; color:#6b7280; }
+.fs-legal a { color:#6b7280; text-decoration:none; }
+.fs-legal a:hover { text-decoration:underline; }
+
+@media (max-width:640px) {
+  .fs-cols { flex-direction:column; }
+  .fs-bottom { flex-direction:column; gap:8px; align-items:flex-start }
+}

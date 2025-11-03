@@ -1,4 +1,5 @@
 import React from 'react'
+import '../../styles/pages/account.css'
 import { getUser, logout } from '../../services/auth'
 import { useNavigate } from 'react-router-dom'
 

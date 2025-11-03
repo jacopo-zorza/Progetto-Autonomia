@@ -1,0 +1,37 @@
+.item-detail { background:#fff; border:1px solid rgba(4,15,15,0.06); border-radius:8px; padding:16px; max-width:1200px; margin:0 auto; box-shadow:0 6px 18px rgba(2,40,24,0.04); }
+
+.item-detail-grid { display:grid; grid-template-columns: 1fr 420px; gap:1rem; align-items:start; }
+@media (max-width: 980px){ .item-detail-grid { grid-template-columns: 1fr; } .item-main { order: 1 } .item-details { order: 2 } }
+
+.buy-card { background: #fff; border-radius:10px; padding:1rem; border:1px solid #eef2f1; box-shadow: 0 8px 20px rgba(2,40,24,0.04); text-align:center }
+.item-price-big { font-size:1.25rem; color:var(--pa-deep-green); font-weight:800; margin-bottom:0.5rem }
+.item-price-seller { display:flex; flex-direction:column; gap:0.25rem; margin-bottom:0.75rem }
+.item-price-inline { font-size:1.25rem; color:var(--pa-deep-green); font-weight:800 }
+.seller-meta { color: rgba(4,15,15,0.65); font-size:0.95rem }
+.buy-btn { background: linear-gradient(90deg,var(--pa-green), #1e9b3a); color:#fff; padding:0.75rem 1rem; border-radius:10px; border:none; cursor:pointer; font-weight:800; box-shadow:0 8px 20px rgba(43,168,74,0.12); transition: transform .12s ease, box-shadow .12s ease }
+.buy-btn:hover { transform: translateY(-3px); box-shadow:0 16px 36px rgba(43,168,74,0.16) }
+.buy-btn.small { padding:0.5rem 0.75rem; font-size:0.95rem; border-radius:8px; width:100%; max-width:220px }
+
+.item-main { display:flex; flex-direction:column; gap:0.75rem }
+.item-media { background:#f8faf7; border-radius:10px; padding:0.5rem }
+.item-main-img { width:100%; height:420px; object-fit:cover; border-radius:8px }
+.item-title { font-size:1.5rem; margin-top:0.5rem; color:var(--pa-deep-green); font-weight:800 }
+
+.item-details { background:#fff; border-radius:10px; padding:1rem; border:1px solid #f1f5f4 }
+.item-section-title { font-weight:800; color:var(--pa-deep-green); margin-bottom:0.5rem }
+.item-desc { color: rgba(4,15,15,0.8); margin-bottom:0.75rem }
+.item-attrs div { margin-bottom:0.5rem }
+.item-attrs strong { color: rgba(4,15,15,0.9); margin-right:0.35rem }
+
+.item-actions { margin-top:1rem }
+
+.similar-section { margin-top:2rem }
+.similar-grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(180px,1fr)); gap:1rem }
+.similar-card .fs-card-media { height:120px; overflow:hidden }
+.similar-card .fs-card-img { width:100%; height:100%; object-fit:cover }
+
+@media (max-width:540px){ .item-main-img { height:260px } }
+
+/* Row containing the buy button positioned under the main grid */
+.buy-row { display:flex; justify-content:flex-end; margin-top:1rem }
+@media (max-width:980px){ .buy-row { justify-content:center } }

@@ -34,31 +34,52 @@ def register():
     """
     try:
         data = request.get_json()
-        
+
         if not data:
             return jsonify({
                 "success": False,
                 "message": "Dati mancanti"
             }), 400
-        
+
         username = data.get('username', '').strip()
         email = data.get('email', '').strip()
         password = data.get('password', '')
-        
-        # Registra utente
-        success, message, user = AuthService.register_user(username, email, password)
-        
+        # campi opzionali
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
+        phone = data.get('phone')
+        profile_image = data.get('profile_image')
+
+        # Registra utente (passa anche campi opzionali)
+        success, message, user = AuthService.register_user(username, email, password, first_name, last_name, phone, profile_image)
+
+        # Caso di validazione o conflitto (username/email già in uso)
         if not success:
             status_code = 409 if "già" in message else 400
             return jsonify({
                 "success": False,
                 "message": message
             }), status_code
-        
+
+        # Difensiva: se il servizio segnala successo ma non ritorna l'oggetto user
+        if user is None:
+            # Log minimale e messaggio chiaro al client
+            return jsonify({
+                "success": False,
+                "message": "Registrazione fallita: utente non creato",
+                "detail": message
+            }), 500
+
         # Genera JWT tokens (identity deve essere stringa)
-        access_token = create_access_token(identity=str(user.id))
-        refresh_token = create_refresh_token(identity=str(user.id))
-        
+        try:
+            access_token = create_access_token(identity=str(user.id))
+            refresh_token = create_refresh_token(identity=str(user.id))
+        except Exception as e:
+            return jsonify({
+                "success": False,
+                "message": f"Errore generazione token: {str(e)}"
+            }), 500
+
         return jsonify({
             "success": True,
             "message": message,
@@ -71,7 +92,7 @@ def register():
             "access_token": access_token,
             "refresh_token": refresh_token
         }), 201
-        
+
     except Exception as e:
         return jsonify({
             "success": False,
@@ -108,17 +129,31 @@ def login():
         
         # Effettua login
         success, message, user = AuthService.login_user(username, password)
-        
+
         if not success:
             return jsonify({
                 "success": False,
                 "message": message
             }), 401
-        
+
+        # Difensiva: se servizio ritorna successo ma user è None
+        if user is None:
+            return jsonify({
+                "success": False,
+                "message": "Login fallito: utente non trovato",
+                "detail": message
+            }), 500
+
         # Genera JWT tokens (identity deve essere stringa)
-        access_token = create_access_token(identity=str(user.id))
-        refresh_token = create_refresh_token(identity=str(user.id))
-        
+        try:
+            access_token = create_access_token(identity=str(user.id))
+            refresh_token = create_refresh_token(identity=str(user.id))
+        except Exception as e:
+            return jsonify({
+                "success": False,
+                "message": f"Errore generazione token: {str(e)}"
+            }), 500
+
         return jsonify({
             "success": True,
             "message": message,

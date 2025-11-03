@@ -4,6 +4,7 @@ export type Item = {
   description: string
   price?: number
   owner?: string
+  category?: string
 }
 
 const KEY = 'pa_items'
@@ -19,7 +20,8 @@ function write(items: Item[]) {
 
 export function createItem(item: Omit<Item, 'id'>): Item {
   const items = read()
-  const newItem: Item = { ...item, id: Date.now().toString() }
+  // Genera un id più unico per evitare duplicati quando si creano molti elementi rapidamente
+  const newItem: Item = { ...item, id: `${Date.now()}_${Math.random().toString(36).slice(2,9)}` }
   items.unshift(newItem)
   write(items)
   return newItem

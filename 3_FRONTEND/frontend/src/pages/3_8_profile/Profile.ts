@@ -1,4 +1,5 @@
 import React from 'react'
+import '../../styles/pages/account.css'
 import { getUser } from '../../services/auth'
 
 export default function Profile(): React.ReactElement {

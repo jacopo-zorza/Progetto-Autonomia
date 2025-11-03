@@ -118,7 +118,7 @@ class AuthService:
         return True, ""
     
     @staticmethod
-    def register_user(username: str, email: str, password: str) -> tuple[bool, str, User | None]:
+    def register_user(username: str, email: str, password: str, first_name: str | None = None, last_name: str | None = None, phone: str | None = None, profile_image: str | None = None) -> tuple[bool, str, User | None]:
         """
         Registra un nuovo utente
         
@@ -157,11 +157,15 @@ class AuthService:
             # Hash della password
             password_hash = AuthService.hash_password(password)
             
-            # Crea nuovo utente
+            # Crea nuovo utente (con campi opzionali)
             new_user = User(
                 username=username,
                 email=email,
-                password_hash=password_hash
+                password_hash=password_hash,
+                first_name=first_name,
+                last_name=last_name,
+                phone=phone,
+                profile_image=profile_image
             )
             
             db.session.add(new_user)
