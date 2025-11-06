@@ -1,0 +1,32 @@
+/* Styles per la pagina About */
+
+:root{
+  --about-bg: #fff;
+  --about-accent: #be123c;
+  --about-deep: #0f172a;
+  --about-muted: #6b7280;
+}
+
+.about-page { background: transparent; padding-bottom: 2rem }
+
+.about-hero { background: linear-gradient(180deg,#fff 0%, #fff8f9 100%); padding: 2.5rem 0; }
+.about-hero-inner { max-width:1100px; margin:0 auto; padding:0 1rem; text-align:center }
+.about-title { font-size:2rem; margin:0 0 0.5rem; color:var(--about-deep); font-weight:800 }
+.about-sub { margin:0 auto; max-width:780px; color:var(--about-muted); }
+
+.about-content { max-width:1100px; margin:1.25rem auto; padding:0 1rem }
+.about-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem; }
+@media (max-width: 900px){ .about-grid { grid-template-columns: 1fr } }
+
+.about-card { background:var(--about-bg); border-radius:10px; padding:1rem 1.25rem; box-shadow:0 8px 20px rgba(2,40,24,0.04); border:1px solid #eef2f1 }
+.about-card-title { font-weight:800; color:var(--about-deep); margin-bottom:0.5rem }
+.about-list { margin:0; padding-left:1.25rem; color:var(--about-muted) }
+.about-list li { margin-bottom:0.5rem }
+
+.about-cta { display:flex; gap:1rem; align-items:center; justify-content:flex-start; margin-top:1rem }
+@media (max-width:640px){ .about-cta { flex-direction:column; align-items:stretch } }
+
+.about-cta-btn { background:var(--about-accent); color:#fff; padding:0.75rem 1rem; border-radius:8px; text-decoration:none; font-weight:700 }
+.about-cta-link { color:var(--about-accent); text-decoration:none; font-weight:700; align-self:center }
+
+.about-card p { color:var(--about-muted); line-height:1.5 }

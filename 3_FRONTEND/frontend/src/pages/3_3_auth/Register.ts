@@ -68,7 +68,7 @@ export default function Register(): React.ReactElement {
           React.createElement('input', { className: 'fs-input', placeholder: 'Cognome', value: lastName, onInput: (e:any)=>setLastName(e.target.value) }),
           React.createElement('input', { className: 'fs-input', placeholder: 'Telefono', value: phone, onInput: (e:any)=>setPhone(e.target.value) }),
 
-          React.createElement('button', { type: 'submit', className: 'fs-submit', disabled: loading }, loading ? 'Caricamento...' : 'Iscriviti')
+          React.createElement('button', { type: 'submit', className: 'fs-submit', disabled: loading }, loading ? 'Caricamento...' : 'Registrati')
         )
       )
     )

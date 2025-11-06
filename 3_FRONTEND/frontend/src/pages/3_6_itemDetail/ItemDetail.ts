@@ -29,7 +29,7 @@ export default function ItemDetail(): React.ReactElement {
       // Main: image and title (left)
       React.createElement('div', { className: 'item-main' },
         React.createElement('div', { className: 'item-media' },
-          React.createElement('img', { src: `https://picsum.photos/seed/${item.id}/900/700`, alt: item.title, className: 'item-main-img' })
+          React.createElement('img', { src: item.image ? item.image : `https://picsum.photos/seed/${item.id}/900/700`, alt: item.title, className: 'item-main-img' })
         ),
         React.createElement('h1', { className: 'item-title' }, item.title)
       ),
@@ -66,8 +66,8 @@ export default function ItemDetail(): React.ReactElement {
       React.createElement('h3', { className: 'item-section-title' }, 'Potrebbe interessarti'),
       React.createElement('div', { className: 'similar-grid' },
         similar.map(s => React.createElement(Link, { to: `/items/${s.id}`, key: s.id, className: 'fs-card similar-card' },
-          React.createElement('div', { className: 'fs-card-media' },
-            React.createElement('img', { src: `https://picsum.photos/seed/${s.id}/400/300`, alt: s.title, className: 'fs-card-img' }),
+            React.createElement('div', { className: 'fs-card-media' },
+            React.createElement('img', { src: s.image ? s.image : `https://picsum.photos/seed/${s.id}/400/300`, alt: s.title, className: 'fs-card-img' }),
             React.createElement('div', { className: 'fs-price' }, s.price ? `€ ${s.price}` : '-')
           ),
           React.createElement('div', { className: 'fs-card-body' },

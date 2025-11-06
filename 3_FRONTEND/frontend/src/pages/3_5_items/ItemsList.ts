@@ -1,4 +1,5 @@
 import React from 'react'
+import '../../styles/pages/items.css'
 import { listItems } from '../../services/items'
 import { Link } from 'react-router-dom'
 
@@ -9,10 +10,26 @@ export default function ItemsList(): React.ReactElement {
     'div',
     null,
     React.createElement('h2', { className: 'text-xl pa-heading mb-4' }, 'Elenco oggetti'),
-    React.createElement('div', { className: 'grid gap-4' }, items.map((i: any) => React.createElement('div', { key: i.id, className: 'pa-card' },
-      React.createElement(Link, { to: `/items/${i.id}`, className: 'text-xl pa-heading' }, i.title),
-      React.createElement('p', { className: 'text-muted mt-2' }, i.description),
-      React.createElement('div', { className: 'mt-3 text-sm text-gray-600' }, i.price ? `${i.price} €` : 'Prezzo non specificato')
-    )))
+    React.createElement(
+      'div',
+      { className: 'grid gap-4' },
+      items.map((i: any) => React.createElement(
+        'div',
+        { key: i.id, className: 'pa-card flex items-start gap-4' },
+        // immagine (se presente)
+        // Usa l'immagine dell'item se presente, altrimenti fallback deterministico
+        React.createElement('img', {
+          src: i.image ? i.image : `https://picsum.photos/seed/${i.id}/400/300`,
+          alt: i.title || 'Immagine oggetto',
+          className: 'pa-img'
+        }),
+        // contenuto testuale
+        React.createElement('div', { className: 'pa-body' },
+          React.createElement(Link, { to: `/items/${i.id}`, className: 'pa-title pa-link' }, i.title),
+          React.createElement('p', { className: 'pa-desc' }, i.description),
+          React.createElement('div', { className: 'pa-price' }, i.price ? `${i.price} €` : 'Prezzo non specificato')
+        )
+      ))
+    )
   )
 }

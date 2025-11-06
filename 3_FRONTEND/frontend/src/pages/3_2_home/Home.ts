@@ -76,7 +76,7 @@ export default function Home(): React.ReactElement {
             e(Link, { to: `/items/${item.id}`, key: `${item.id}-${idx}`, className: 'fs-card' },
               // image with price tag and heart
               e('div', { className: 'fs-card-media' },
-                e('img', { src: `https://picsum.photos/seed/${item.id}/800/600`, alt: item.title, className: 'fs-card-img' }),
+                e('img', { src: item.image ? item.image : `https://picsum.photos/seed/${item.id}/800/600`, alt: item.title, className: 'fs-card-img' }),
                 e('div', { className: 'fs-price' }, item.price ? `€ ${item.price}` : '-'),
                 e('button', { className: 'fs-fav', title: 'Aggiungi ai preferiti', onClick: (ev: any) => { ev.preventDefault(); /* mock */ } },
                   e('svg', { width: '18', height: '18', viewBox: '0 0 24 24', fill: 'none', xmlns: 'http://www.w3.org/2000/svg' },

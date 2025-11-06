@@ -1,10 +1,44 @@
 import React from 'react'
+import '../../styles/pages/about.css'
+import { Link } from 'react-router-dom'
 
 export default function About(): React.ReactElement {
-  return React.createElement(
-    'div',
-    { className: 'bg-white shadow rounded p-6' },
-    React.createElement('h2', { className: 'text-2xl font-semibold mb-2' }, 'Informazioni'),
-    React.createElement('p', { className: 'text-gray-700' }, 'Progetto Autonomia — prototipo frontend minimale. Palette colori applicata.' )
+  const e = React.createElement
+
+  return e('main', { className: 'about-page' },
+    e('section', { className: 'about-hero' },
+      e('div', { className: 'about-hero-inner' },
+        e('h1', { className: 'about-title' }, 'Chi siamo'),
+        e('p', { className: 'about-sub' }, 'Progetto Autonomia — prototipo di un marketplace locale per comprare e vendere oggetti. Questo sito è una demo frontend con storage locale per gli annunci.')
+      )
+    ),
+
+    e('section', { className: 'about-content fs-container' },
+      e('div', { className: 'about-grid' },
+        e('div', { className: 'about-card' },
+          e('h2', { className: 'about-card-title' }, 'La nostra missione'),
+          e('p', null, 'Rendere semplice lo scambio di oggetti nella tua comunità: usabilità, privacy e performance sono al centro del progetto. Questo prototipo dimostra pattern di UI/UX per un marketplace minimale.')
+        ),
+
+        e('div', { className: 'about-card' },
+          e('h2', { className: 'about-card-title' }, 'Caratteristiche'),
+          e('ul', { className: 'about-list' },
+            e('li', null, 'Elenco oggetti con immagini e dettagli'),
+            e('li', null, 'Scheda dettaglio per ogni annuncio'),
+            e('li', null, 'Autenticazione mock e localStorage per i dati')
+          )
+        ),
+
+        e('div', { className: 'about-card' },
+          e('h2', { className: 'about-card-title' }, 'Team & contatti'),
+          e('p', null, 'Sviluppato da Progetto Autonomia. Per richieste prova a contattare il manutentore del repository.')
+        )
+      ),
+
+      e('div', { className: 'about-cta' },
+        e(Link, { to: '/items', className: 'about-cta-btn' }, 'Scopri gli oggetti'),
+        e(Link, { to: '/create', className: 'about-cta-link' }, 'Inserisci annuncio')
+      )
+    )
   )
 }

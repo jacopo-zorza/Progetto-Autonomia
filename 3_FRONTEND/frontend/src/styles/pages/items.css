@@ -1,0 +1,75 @@
+/* Styles specifici per la pagina Items (lista oggetti) */
+
+:root{
+  --pa-card-bg: #ffffff;
+  --pa-card-border: #eef2f1;
+  --pa-deep: #0f172a;
+  --pa-muted: #6b7280;
+  --pa-accent: #1e9b3a;
+}
+
+.pa-heading, .pa-heading a {
+  font-size: 1.125rem; /* text-xl */
+  font-weight: 700;
+  color: var(--pa-deep);
+}
+
+.mb-4 { margin-bottom: 1rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 0.75rem; }
+.text-sm { font-size: 0.9rem; }
+.text-muted { color: var(--pa-muted); }
+.text-gray-600 { color: #4b5563; }
+
+/* semplice sistema griglia locale utilizzato in ItemsList */
+.grid { display: grid; }
+.gap-4 { gap: 1rem; }
+
+.pa-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: var(--pa-card-bg);
+  border: 1px solid var(--pa-card-border);
+  padding: 12px;
+  border-radius: 8px;
+  transition: box-shadow .12s ease, transform .12s ease;
+}
+.pa-card:hover { box-shadow: 0 10px 30px rgba(2,40,24,0.06); transform: translateY(-3px); }
+
+.pa-card img {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+  background: #f3f4f6;
+}
+
+/* classe specifica immagine usata nelle card (coerenza) */
+.pa-img {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+  background: #f3f4f6;
+  display: block;
+}
+
+.pa-card .pa-body { display:flex; flex-direction:column; gap:0.4rem; }
+.pa-card .pa-title { font-weight:700; color:var(--pa-deep); }
+.pa-card .pa-desc { color: var(--pa-muted); font-size:0.95rem; max-height:3.2rem; overflow:hidden; }
+.pa-card .pa-price { margin-top:0.5rem; color: var(--pa-accent); font-weight:800 }
+
+/* responsive: su schermi piccoli le card diventano verticali */
+@media (max-width:640px){
+  .pa-card { flex-direction: row; }
+  .pa-card img { width:80px; height:80px }
+}
+
+/* fallback utility per link senza stile */
+.pa-link { color: inherit; text-decoration: none }
+
+/* piccolo placeholder quando non c'è immagine */
+.pa-placeholder { width:96px; height:96px; background:#f3f4f6; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#9ca3af; font-size:0.85rem }

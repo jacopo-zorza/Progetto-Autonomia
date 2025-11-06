@@ -71,9 +71,9 @@ export default function Login(): React.ReactElement {
             React.createElement('button', { type: 'button', className: 'fs-social' }, 'Continua con Facebook')
           ),
 
-          React.createElement('div', { style: { marginTop: '1rem', textAlign: 'center' } },
+            React.createElement('div', { style: { marginTop: '1rem', textAlign: 'center' } },
             React.createElement('span', { className: 'text-muted' }, 'Non hai un account? '),
-            React.createElement('a', { href: '/register', style: { color: 'var(--fs-deep)', fontWeight:700, marginLeft:6 } }, 'Iscriviti')
+            React.createElement('a', { href: '/register', style: { color: 'var(--fs-deep)', fontWeight:700, marginLeft:6 } }, 'Registrati')
           )
         )
       )

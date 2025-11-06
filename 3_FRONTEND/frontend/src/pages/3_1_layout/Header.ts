@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { isAuthenticated, getUser, logout } from '../../services/auth'
 
 export default function Header(): React.ReactElement {
@@ -7,6 +7,7 @@ export default function Header(): React.ReactElement {
 
   function goBack() { navigate(-1) }
   function doLogout() { logout(); navigate('/') }
+  const location = useLocation()
 
   const [authState, setAuthState] = useState(isAuthenticated())
   const [user, setUser] = useState(getUser())
@@ -27,7 +28,8 @@ export default function Header(): React.ReactElement {
       React.createElement(
         'div',
         { className: 'fs-left' },
-        React.createElement('button', { onClick: goBack, className: 'fs-back', title: 'Indietro' }, '‹'),
+  // Mostra il pulsante "indietro" solo se non siamo sulla homepage (root)
+  location.pathname !== '/' ? React.createElement('button', { onClick: goBack, className: 'fs-back', title: 'Indietro' }, '‹') : null,
         React.createElement(Link, { to: '/', className: 'fs-logo-link' },
           React.createElement('img', { src: '/logo.png', alt: 'FastSeller', className: 'fs-logo-img', onError: (e:any) => { e.target.style.display='none' } }),
           React.createElement('span', { className: 'fs-logo-text' }, 'FastSeller')
@@ -40,7 +42,7 @@ export default function Header(): React.ReactElement {
         { className: 'fs-nav' },
         !authState ? (
           React.createElement(React.Fragment, null,
-            React.createElement(Link, { to: '/register', className: 'fs-auth-btn' }, 'Iscriviti'),
+            React.createElement(Link, { to: '/register', className: 'fs-auth-btn' }, 'Registrati'),
             React.createElement(Link, { to: '/login', className: 'fs-auth-btn' }, 'Accedi'),
             React.createElement(Link, { to: '/login', className: 'fs-nav-sell' }, 'Vendi subito!')
           )

@@ -3,6 +3,7 @@ export type Item = {
   title: string
   description: string
   price?: number
+  image?: string // URL o data-uri dell'immagine principale
   owner?: string
   category?: string
 }
@@ -28,7 +29,13 @@ export function createItem(item: Omit<Item, 'id'>): Item {
 }
 
 export function listItems(): Item[] {
-  return read()
+  // Ritorna una copia ordinata per titolo (ascendente) per avere sempre
+  // un elenco prevedibile nella UI
+  return read().slice().sort((a, b) => {
+    const ta = (a.title || '').toString().toLowerCase()
+    const tb = (b.title || '').toString().toLowerCase()
+    return ta.localeCompare(tb)
+  })
 }
 
 export function getItem(id: string): Item | undefined {
