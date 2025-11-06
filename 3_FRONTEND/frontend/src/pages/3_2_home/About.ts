@@ -9,7 +9,7 @@ export default function About(): React.ReactElement {
     e('section', { className: 'about-hero' },
       e('div', { className: 'about-hero-inner' },
         e('h1', { className: 'about-title' }, 'Chi siamo'),
-        e('p', { className: 'about-sub' }, 'Progetto Autonomia — prototipo di un marketplace locale per comprare e vendere oggetti. Questo sito è una demo frontend con storage locale per gli annunci.')
+        e('p', { className: 'about-sub' }, 'prototipo di un marketplace locale per comprare e vendere oggetti. Questo sito è una demo frontend con storage locale per gli annunci.')
       )
     ),
 

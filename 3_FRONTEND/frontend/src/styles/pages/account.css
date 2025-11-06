@@ -1,5 +1,89 @@
-/* Simple CSS for account/dashboard/profile pages */
+/* Styles per pagina Account/Dashboard (ispirato a Vinted) */
 
-.account-card { background:#fff; border:1px solid rgba(4,15,15,0.06); border-radius:8px; padding:16px; max-width:640px; margin:0 auto; box-shadow:0 6px 18px rgba(2,40,24,0.04); }
-.account-actions { margin-top:1rem; display:flex; gap:0.5rem; }
-.account-info { font-size:0.9rem; color:#374151; }
+:root{
+	--pa-bg: #ffffff;
+	--pa-deep: #0f172a;
+	--pa-muted: #6b7280;
+	--pa-accent: #be123c; /* principale della palette */
+	--pa-accent-2: #1e9b3a;
+}
+
+.pa-card { background:var(--pa-bg); border:1px solid rgba(4,15,15,0.06); border-radius:12px; padding:16px; box-shadow:0 6px 18px rgba(2,40,24,0.04); }
+
+.account-hero { display:flex; gap:1rem; align-items:center; padding:1rem 0; }
+.account-avatar { width:88px; height:88px; border-radius:9999px; background:#f3f4f6; display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--pa-muted); font-size:1.25rem; overflow:hidden }
+.account-meta { display:flex; flex-direction:column; }
+.account-name { font-size:1.25rem; font-weight:800; color:var(--pa-deep) }
+.account-hero { display:flex; gap:1rem; align-items:center; padding:1rem 0; }
+.account-sub { color:var(--pa-muted); font-size:0.95rem }
+
+.account-actions { margin-top:0; display:flex; gap:0.5rem; align-items:center; justify-content:flex-end }
+.pa-btn { background:var(--pa-accent-2); color:#fff; border:none; padding:0.6rem 0.9rem; border-radius:8px; cursor:pointer; font-weight:700 }
+.pa-btn.ghost { background:transparent; color:var(--pa-deep); border:1px solid #e6e6e6 }
+
+.account-stats { display:flex; gap:1rem; margin-top:1rem }
+.stat { background:#fff; border:1px solid #f1f5f4; padding:0.6rem 0.8rem; border-radius:8px; text-align:center }
+.stat .num { font-weight:800; color:var(--pa-deep); display:block }
+.stat .label { color:var(--pa-muted); font-size:0.85rem }
+
+.my-items { margin-top:1rem }
+.my-items-grid { display:grid; grid-template-columns: repeat(2,1fr); gap:12px }
+@media(min-width:768px){ .my-items-grid { grid-template-columns: repeat(3,1fr) } }
+
+.my-item-card { display:block; background:#fff; border-radius:8px; overflow:hidden; text-decoration:none; color:inherit; box-shadow:0 1px 3px rgba(2,6,23,0.04) }
+.my-item-media { position:relative }
+.my-item-img { width:100%; height:160px; object-fit:cover; display:block }
+.my-item-body { padding:10px }
+.my-item-title { font-weight:700; margin-bottom:6px }
+.my-item-price { color:var(--pa-accent); font-weight:800 }
+
+.empty { text-align:center; color:var(--pa-muted); padding:1rem }
+
+/* two column layout for dashboard */
+.layout-two-cols { display:grid; grid-template-columns: 1fr 320px; gap:16px; margin-top:12px }
+@media(max-width:900px){ .layout-two-cols { grid-template-columns: 1fr; } }
+
+.right-col .pa-card { padding:12px }
+
+/* avatar edit button overlay */
+.avatar-edit { position: absolute; right: -6px; bottom: -6px; background: var(--pa-accent); color: #fff; border: none; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow: 0 6px 14px rgba(0,0,0,0.12) }
+
+.account-avatar img { display:block }
+
+.profile-table { width:100%; border-collapse: collapse; margin-top:8px }
+.profile-table td { padding:8px 6px; border-bottom:1px solid #f3f4f4 }
+.profile-table td:first-child { color:var(--pa-muted); width:120px }
+
+/* pannello centrale sotto hero */
+.panel-tabs { display:flex; justify-content:center; gap:0.75rem; margin-bottom:1rem; }
+.panel-tab { padding:8px 20px; border-radius:9999px; border:1px solid #e5e7eb; background:#fff; cursor:pointer; font-weight:600; transition:background 0.2s ease, color 0.2s ease; }
+.panel-tab.active { background:var(--pa-accent); color:#fff; border-color:var(--pa-accent); }
+.panel-content { width:100%; }
+
+.center-page { display:flex; justify-content:center }
+.profile-wrap { width:100%; max-width:1100px; display:flex; flex-direction:column; gap:1.25rem }
+.profile-hero { display:flex; gap:24px; align-items:center; justify-content:space-between; padding:1.25rem 1.5rem }
+.profile-left { flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:0.75rem }
+.profile-right { flex:1; display:flex; flex-direction:column; }
+.profile-header-top { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; width:100%; }
+.profile-identity { display:flex; flex-direction:column; gap:0.25rem; }
+.profile-right .account-sub { margin-top:0.25rem; }
+.profile-header-top .account-actions { flex-wrap:wrap; }
+.profile-data-card, .profile-stats-card { width:100%; }
+.tab-btn { padding:8px 12px; border-radius:9999px; border:1px solid #ececec; background:#fff; cursor:pointer; transition:background 0.2s ease, color 0.2s ease }
+.tab-btn.active { background:var(--pa-accent); color:#fff; border-color: var(--pa-accent) }
+.sales-columns { display:flex; gap:12px }
+.sales-col { flex:1; background:#fff; padding:12px; border-radius:8px; border:1px solid #f1f5f4 }
+.profile-sidebar { margin-top:16px }
+
+/* central profile card layout (register-like) */
+.profile-card-center { max-width:820px; margin:24px auto; padding:20px }
+.profile-main { display:flex; gap:20px; align-items:flex-start }
+.profile-main .profile-left { flex:0 0 160px; }
+.profile-main .profile-right { flex:1 }
+.profile-actions { display:flex; gap:8px; justify-content:flex-start; margin-top:16px }
+.profile-card-center .profile-content { margin-top:16px }
+
+/* center page helper */
+.center-page { display:flex; justify-content:center }
+

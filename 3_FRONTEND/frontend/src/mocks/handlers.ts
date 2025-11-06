@@ -19,7 +19,7 @@ export const handlers = [
         ctx.status(201),
         ctx.json({ id: `user_${Date.now()}`, email: body.email, message: 'registered (mock)' })
       )
-    } catch (err) {
+    } catch {
       return res(ctx.status(500), ctx.json({ error: 'Invalid request' }))
     }
   })

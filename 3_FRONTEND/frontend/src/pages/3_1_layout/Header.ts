@@ -10,7 +10,7 @@ export default function Header(): React.ReactElement {
   const location = useLocation()
 
   const [authState, setAuthState] = useState(isAuthenticated())
-  const [user, setUser] = useState(getUser())
+  const [, setUser] = useState(getUser())
 
   useEffect(() => {
     function onAuth(){ setAuthState(isAuthenticated()); setUser(getUser()) }
