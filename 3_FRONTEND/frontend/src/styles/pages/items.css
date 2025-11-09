@@ -61,6 +61,11 @@
 .pa-card .pa-title { font-weight:700; color:var(--pa-deep); }
 .pa-card .pa-desc { color: var(--pa-muted); font-size:0.95rem; max-height:3.2rem; overflow:hidden; }
 .pa-card .pa-price { margin-top:0.5rem; color: var(--pa-accent); font-weight:800 }
+.pa-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:0.5rem; }
+.pa-tag { background:#e0f2f1; color:#0f766e; font-size:0.75rem; padding:2px 8px; border-radius:999px; font-weight:600; text-transform:capitalize; }
+.pa-chip { background:#f3f4f6; color:#4b5563; font-size:0.75rem; padding:2px 8px; border-radius:999px; }
+.pa-footer-row { margin-top:0.75rem; display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center; justify-content:space-between; }
+.pa-owner { font-size:0.85rem; color:var(--pa-muted); }
 
 /* responsive: su schermi piccoli le card diventano verticali */
 @media (max-width:640px){

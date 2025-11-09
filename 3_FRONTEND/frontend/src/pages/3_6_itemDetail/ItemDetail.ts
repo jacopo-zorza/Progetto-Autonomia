@@ -38,7 +38,13 @@ export default function ItemDetail(): React.ReactElement {
       React.createElement('div', { className: 'item-details' },
         React.createElement('div', { className: 'item-price-seller' },
           React.createElement('div', { className: 'item-price-inline' }, item.price ? `€ ${item.price}` : '-'),
-          React.createElement('div', { className: 'seller-meta' }, `Venduto da: ${item.owner || 'utente'}`)
+          React.createElement('div', { className: 'seller-meta' }, `Venduto da: ${item.ownerName || item.owner || 'utente'}`)
+        ),
+
+        React.createElement('div', { className: 'item-badge-row' },
+          item.category ? React.createElement('span', { className: 'item-badge primary' }, item.category) : null,
+          item.condition ? React.createElement('span', { className: 'item-badge' }, item.condition) : null,
+          item.location ? React.createElement('span', { className: 'item-badge' }, item.location) : null
         ),
 
         React.createElement('h3', { className: 'item-section-title' }, 'Descrizione'),
@@ -46,8 +52,8 @@ export default function ItemDetail(): React.ReactElement {
 
         React.createElement('div', { className: 'item-attrs' },
           React.createElement('div', null, React.createElement('strong', null, 'Categoria: '), React.createElement('span', null, item.category || '-')),
-          React.createElement('div', null, React.createElement('strong', null, 'Condizione: '), React.createElement('span', null, 'Usato')),
-          React.createElement('div', null, React.createElement('strong', null, 'Località: '), React.createElement('span', null, 'Non specificata'))
+          React.createElement('div', null, React.createElement('strong', null, 'Condizione: '), React.createElement('span', null, item.condition || 'Non specificata')),
+          React.createElement('div', null, React.createElement('strong', null, 'Località: '), React.createElement('span', null, item.location || 'Non specificata'))
         ),
 
         // Pulsante Acquista più piccolo, all'interno del riquadro dei dettagli, sotto descrizione/attributi

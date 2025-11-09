@@ -14,12 +14,12 @@ export default function Home(): React.ReactElement {
     if (!current || current.length === 0) {
       // crea alcuni demo items per la home
       const demos = [
-        { title: 'Giacca invernale', description: 'Calda, usata una stagione', price: 45, owner: 'Luca', category: 'Abbigliamento' },
-        { title: 'Borsa in pelle', description: 'Vintage, ottime condizioni', price: 60, owner: 'Martina', category: 'Abbigliamento' },
-        { title: 'Smartphone usato', description: 'Perfetto stato, 64GB', price: 120, owner: 'Andrea', category: 'Elettronica' },
-        { title: 'Lampada design', description: 'Ideale per soggiorno', price: 25, owner: 'Sara', category: 'Casa' },
-        { title: 'Bicicletta city', description: 'Serviziata, freni nuovi', price: 150, owner: 'Marco', category: 'Sport' },
-        { title: 'Scarpe da corsa', description: 'Taglia 42, quasi nuove', price: 30, owner: 'Elena', category: 'Sport' }
+        { title: 'Giacca invernale', description: 'Calda, usata una stagione', price: 45, owner: 'luca', ownerName: 'Luca', category: 'Abbigliamento', condition: 'Usato', location: 'Milano' },
+        { title: 'Borsa in pelle', description: 'Vintage, ottime condizioni', price: 60, owner: 'martina', ownerName: 'Martina', category: 'Abbigliamento', condition: 'Come nuova', location: 'Torino' },
+        { title: 'Smartphone usato', description: 'Perfetto stato, 64GB', price: 120, owner: 'andrea', ownerName: 'Andrea', category: 'Elettronica', condition: 'Ottimo', location: 'Bologna' },
+        { title: 'Lampada design', description: 'Ideale per soggiorno', price: 25, owner: 'sara', ownerName: 'Sara', category: 'Casa', condition: 'Usato', location: 'Verona' },
+        { title: 'Bicicletta city', description: 'Serviziata, freni nuovi', price: 150, owner: 'marco', ownerName: 'Marco', category: 'Sport', condition: 'Buono', location: 'Padova' },
+        { title: 'Scarpe da corsa', description: 'Taglia 42, quasi nuove', price: 30, owner: 'elena', ownerName: 'Elena', category: 'Sport', condition: 'Come nuove', location: 'Trieste' }
       ]
       demos.forEach(d => createItem(d))
       current = listItems()
@@ -32,7 +32,7 @@ export default function Home(): React.ReactElement {
   const filtered = useMemo(() => {
     return items.filter(i => {
       const matchesQuery = query.trim() === '' || `${i.title} ${i.description}`.toLowerCase().includes(query.toLowerCase())
-  const matchesCategory = !activeCategory || (i.category && i.category.toLowerCase() === activeCategory.toLowerCase())
+      const matchesCategory = !activeCategory || (i.category && i.category.toLowerCase() === activeCategory.toLowerCase())
       return matchesQuery && matchesCategory
     })
   }, [items, query, activeCategory])
@@ -89,7 +89,12 @@ export default function Home(): React.ReactElement {
               e('div', { className: 'fs-card-body' },
                 e('div', { className: 'fs-card-title' }, item.title),
                 e('div', { className: 'fs-card-sub' }, item.description),
-                e('div', { className: 'fs-card-meta' }, `Venduto da ${item.owner || 'utente'}`)
+                e('div', { className: 'fs-card-meta fs-card-meta-row' },
+                  item.category ? e('span', { className: 'fs-tag' }, item.category) : null,
+                  item.condition ? e('span', { className: 'fs-meta-chip' }, item.condition) : null,
+                  item.location ? e('span', { className: 'fs-meta-chip' }, item.location) : null
+                ),
+                e('div', { className: 'fs-card-meta' }, `Venduto da ${item.ownerName || item.owner || 'utente'}`)
               )
             )
           )

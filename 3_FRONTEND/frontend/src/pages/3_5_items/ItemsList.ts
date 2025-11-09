@@ -15,7 +15,7 @@ export default function ItemsList(): React.ReactElement {
       { className: 'grid gap-4' },
       items.map((i: any) => React.createElement(
         'div',
-        { key: i.id, className: 'pa-card flex items-start gap-4' },
+        { key: i.id, className: 'pa-card items-card flex items-start gap-4' },
         // immagine (se presente)
         // Usa l'immagine dell'item se presente, altrimenti fallback deterministico
         React.createElement('img', {
@@ -27,7 +27,15 @@ export default function ItemsList(): React.ReactElement {
         React.createElement('div', { className: 'pa-body' },
           React.createElement(Link, { to: `/items/${i.id}`, className: 'pa-title pa-link' }, i.title),
           React.createElement('p', { className: 'pa-desc' }, i.description),
-          React.createElement('div', { className: 'pa-price' }, i.price ? `${i.price} €` : 'Prezzo non specificato')
+          React.createElement('div', { className: 'pa-tags' },
+            i.category ? React.createElement('span', { className: 'pa-tag' }, i.category) : null,
+            i.condition ? React.createElement('span', { className: 'pa-chip' }, i.condition) : null,
+            i.location ? React.createElement('span', { className: 'pa-chip' }, i.location) : null
+          ),
+          React.createElement('div', { className: 'pa-footer-row' },
+            React.createElement('div', { className: 'pa-price' }, i.price ? `${i.price} €` : 'Prezzo non specificato'),
+            React.createElement('div', { className: 'pa-owner' }, `Venduto da ${i.ownerName || i.owner || 'utente'}`)
+          )
         )
       ))
     )

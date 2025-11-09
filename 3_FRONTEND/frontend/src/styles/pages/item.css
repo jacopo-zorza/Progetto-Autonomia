@@ -8,6 +8,9 @@
 .item-price-seller { display:flex; flex-direction:column; gap:0.25rem; margin-bottom:0.75rem }
 .item-price-inline { font-size:1.25rem; color:var(--pa-deep-green); font-weight:800 }
 .seller-meta { color: rgba(4,15,15,0.65); font-size:0.95rem }
+.item-badge-row { display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem; }
+.item-badge { display:inline-flex; align-items:center; padding:4px 10px; border-radius:9999px; background:#f3f4f6; color:#4b5563; font-size:0.75rem; font-weight:600; text-transform:capitalize; }
+.item-badge.primary { background:#e0f2f1; color:#0f766e; }
 .buy-btn { background: linear-gradient(90deg,var(--pa-green), #1e9b3a); color:#fff; padding:0.75rem 1rem; border-radius:10px; border:none; cursor:pointer; font-weight:800; box-shadow:0 8px 20px rgba(43,168,74,0.12); transition: transform .12s ease, box-shadow .12s ease }
 .buy-btn:hover { transform: translateY(-3px); box-shadow:0 16px 36px rgba(43,168,74,0.16) }
 .buy-btn.small { padding:0.5rem 0.75rem; font-size:0.95rem; border-radius:8px; width:100%; max-width:220px }
