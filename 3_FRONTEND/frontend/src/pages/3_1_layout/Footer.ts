@@ -23,7 +23,7 @@ export default function Footer(): React.ReactElement {
           e('ul', null,
             e('li', null, e('a', { href: '#' }, 'Centro assistenza')),
             e('li', null, e('a', { href: '#' }, 'Regole della community')),
-            e('li', null, e('a', { href: '#' }, 'Contatti'))
+            e('li', null, e(Link, { to: '/support' }, 'Contattaci'))
           )
         ),
         e('div', { className: 'fs-col' },

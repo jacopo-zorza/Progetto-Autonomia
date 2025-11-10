@@ -1,0 +1,34 @@
+.va-container { max-width: 960px; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
+.va-card { background: #ffffff; border-radius: 20px; padding: 2rem; border: 1px solid rgba(4,15,15,0.08); box-shadow: 0 22px 45px rgba(2,40,24,0.08); display: flex; flex-direction: column; gap: 1.5rem; min-height: 70vh; }
+.va-header { display: flex; align-items: center; gap: 1rem; border-bottom: 1px solid rgba(4,15,15,0.08); padding-bottom: 1rem; justify-content: space-between; flex-wrap: wrap; }
+.va-header > div:nth-child(2) { flex: 1; min-width: 220px; }
+.va-actions { display: flex; gap: 0.5rem; }
+.va-reset { border: none; background: rgba(4,15,15,0.08); color: rgba(4,15,15,0.7); padding: 0.45rem 0.85rem; border-radius: 9999px; font-weight: 600; cursor: pointer; transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease; }
+.va-reset:hover:not(:disabled) { background: rgba(4,15,15,0.12); color: rgba(4,15,15,0.9); transform: translateY(-1px); }
+.va-reset:disabled { opacity: 0.5; cursor: not-allowed; }
+.va-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--pa-green), #0f7d41); color: #fff; display:flex; align-items:center; justify-content:center; font-weight: 700; letter-spacing: 0.03em; }
+.va-title { font-size: 1.4rem; font-weight: 800; margin: 0; color: var(--pa-deep-green); }
+.va-subtitle { margin: 0.2rem 0 0; color: rgba(4,15,15,0.7); font-size: 0.95rem; }
+.va-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem; padding-right: 0.35rem; }
+.va-bubble { max-width: 72%; padding: 0.75rem 1rem; border-radius: 16px; font-size: 0.95rem; line-height: 1.5; box-shadow: 0 10px 24px rgba(2,40,24,0.08); }
+.va-bubble.user { margin-left: auto; background: #e5f7eb; color: rgba(4,15,15,0.85); border-bottom-right-radius: 4px; }
+.va-bubble.assistant { margin-right: auto; background: #f8f9fe; color: rgba(4,15,15,0.85); border-bottom-left-radius: 4px; }
+.va-bubble.assistant.typing { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.65rem 0.9rem; }
+.va-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(4,15,15,0.45); animation: vaBounce 0.9s infinite ease-in-out; }
+.va-dot:nth-child(2) { animation-delay: 0.2s; }
+.va-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes vaBounce { 0%, 80%, 100% { transform: translateY(0); opacity: 0.45; } 40% { transform: translateY(-4px); opacity: 0.9; } }
+.va-form { display: flex; gap: 0.75rem; border-top: 1px solid rgba(4,15,15,0.08); padding-top: 1rem; }
+.va-input { flex: 1; border: 1px solid rgba(4,15,15,0.12); border-radius: 9999px; padding: 0.65rem 1rem; font-size: 0.95rem; background: #fbfdfb; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+.va-input:focus { outline: none; border-color: var(--pa-green); box-shadow: 0 0 0 3px rgba(43,168,74,0.18); background: #fff; }
+.va-input:disabled { background: #f3f4f6; cursor: not-allowed; }
+.va-send { border: none; background: linear-gradient(90deg, var(--pa-green), #1e9b3a); color: #fff; padding: 0.65rem 1.3rem; border-radius: 9999px; font-weight: 700; cursor: pointer; transition: transform 0.12s ease, box-shadow 0.12s ease; }
+.va-send:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
+.va-send:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 16px 32px rgba(43,168,74,0.2); }
+.va-disclaimer { font-size: 0.8rem; color: rgba(4,15,15,0.55); text-align: center; margin: 0; }
+
+@media (max-width: 720px) {
+  .va-card { padding: 1.5rem; min-height: auto; }
+  .va-bubble { max-width: 100%; }
+  .va-header { align-items: flex-start; }
+}

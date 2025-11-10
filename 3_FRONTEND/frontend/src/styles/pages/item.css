@@ -27,6 +27,14 @@
 .item-attrs strong { color: rgba(4,15,15,0.9); margin-right:0.35rem }
 
 .item-actions { margin-top:1rem }
+.item-owner-actions { margin-top:0.75rem; display:flex; gap:0.5rem; flex-wrap:wrap }
+.owner-action { display:inline-flex; align-items:center; justify-content:center; padding:0.45rem 0.9rem; border-radius:8px; font-weight:600; text-decoration:none; cursor:pointer; border:1px solid transparent; }
+.edit-action { background:#f3f4f6; color:rgba(4,15,15,0.75); border-color:#e5e7eb }
+.edit-action:hover { background:#e5e7eb }
+.delete-action { background:#fff; color:#b91c1c; border-color:#fca5a5 }
+.delete-action:hover { background:#fee2e2 }
+.delete-action:disabled { opacity:0.65; cursor:not-allowed }
+.owner-info-alert { margin-top: 0.75rem; background:#f8faf7; border:1px dashed rgba(4,15,15,0.15); padding:0.75rem 1rem; border-radius:10px; color:rgba(4,15,15,0.7); font-size:0.9rem; }
 
 .similar-section { margin-top:2rem }
 .similar-grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(180px,1fr)); gap:1rem }

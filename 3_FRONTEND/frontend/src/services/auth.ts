@@ -11,6 +11,33 @@ function writeUsers(users: any[]) {
   localStorage.setItem(USERS_KEY, JSON.stringify(users))
 }
 
+function sanitizeWalletValue(value: any): number {
+  const parsed = Number.parseFloat(value)
+  if (!Number.isFinite(parsed)) return 0
+  const normalized = Math.max(0, parsed)
+  return Number(normalized.toFixed(2))
+}
+
+function ensureWallet(user: any) {
+  if (!user) return user
+  const nextBalance = sanitizeWalletValue(user.walletBalance)
+  if (user.walletBalance === nextBalance) return user
+  return { ...user, walletBalance: nextBalance }
+}
+
+function syncUserRecord(user: any) {
+  if (!user || !user.id) return
+  const users = readUsers()
+  const index = users.findIndex(u => u.id === user.id)
+  const payload = { ...user }
+  if (index >= 0) {
+    users[index] = { ...users[index], ...payload }
+  } else {
+    users.unshift(payload)
+  }
+  writeUsers(users)
+}
+
 async function createLocalUser(payload: any){
   const users = readUsers()
   const newUser = {
@@ -19,7 +46,8 @@ async function createLocalUser(payload: any){
     email: payload.email,
     first_name: payload.first_name,
     last_name: payload.last_name,
-    phone: payload.phone
+    phone: payload.phone,
+    walletBalance: 0
   }
   users.unshift(newUser)
   writeUsers(users)
@@ -29,8 +57,11 @@ async function createLocalUser(payload: any){
 }
 
 async function saveAuth(data: any){
+  const sanitizedUser = ensureWallet(data?.user)
+  const payload = sanitizedUser ? { ...data, user: sanitizedUser } : data
   // salva token e user in localStorage
-  localStorage.setItem(AUTH_KEY, JSON.stringify(data))
+  localStorage.setItem(AUTH_KEY, JSON.stringify(payload))
+  if (sanitizedUser) syncUserRecord(sanitizedUser)
   // dispatch event so other components can react
   try{ window.dispatchEvent(new Event('auth-changed')) }catch(e){}
 }
@@ -41,10 +72,13 @@ export function updateUserProfile(updates: Record<string, any>){
   if(!raw) return null
   try{
     const auth = JSON.parse(raw)
-    auth.user = { ...(auth.user || {}), ...updates }
+    const merged = { ...(auth.user || {}), ...updates }
+    const user = ensureWallet(merged)
+    auth.user = user
     localStorage.setItem(AUTH_KEY, JSON.stringify(auth))
+    syncUserRecord(user)
     try{ window.dispatchEvent(new Event('auth-changed')) }catch(e){}
-    return auth.user
+    return user
   }catch(e){ return null }
 }
 
@@ -105,5 +139,36 @@ export function isAuthenticated(){
 
 export function getUser(){
   const v = localStorage.getItem(AUTH_KEY)
-  return v ? JSON.parse(v).user : null
+  if(!v) return null
+  try{
+    const auth = JSON.parse(v)
+    return auth.user ? ensureWallet(auth.user) : null
+  }catch(e){
+    return null
+  }
+}
+
+export function getWalletBalance(): number {
+  const user = getUser()
+  return user && typeof user.walletBalance === 'number' ? user.walletBalance : 0
+}
+
+export function adjustWalletBalance(delta: number): number | null {
+  const raw = localStorage.getItem(AUTH_KEY)
+  if(!raw) return null
+  try{
+    const auth = JSON.parse(raw)
+    if(!auth.user) return null
+    const user = ensureWallet(auth.user)
+    const next = Number((user.walletBalance + delta).toFixed(2))
+    if (Number.isNaN(next) || next < 0) return null
+    const updatedUser = { ...user, walletBalance: next }
+    auth.user = updatedUser
+    localStorage.setItem(AUTH_KEY, JSON.stringify(auth))
+    syncUserRecord(updatedUser)
+    try{ window.dispatchEvent(new Event('auth-changed')) }catch(e){}
+    return next
+  }catch(e){
+    return null
+  }
 }

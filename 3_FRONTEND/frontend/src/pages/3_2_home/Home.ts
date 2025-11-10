@@ -27,7 +27,22 @@ export default function Home(): React.ReactElement {
     setItems(current)
   }, [])
 
-  const categories = ['Abbigliamento', 'Elettronica', 'Casa', 'Sport', 'Bambini', 'Altro']
+  const categories = React.useMemo(() => {
+    const base = new Set<string>()
+    base.add('Abbigliamento')
+    base.add('Elettronica')
+    base.add('Casa')
+    base.add('Sport')
+    base.add('Bambini')
+    base.add('Libri')
+    base.add('Collezionismo')
+    base.add('Motori')
+    base.add('Altro')
+    items.forEach(item => {
+      if (item.category) base.add(item.category)
+    })
+    return Array.from(base)
+  }, [items])
 
   const filtered = useMemo(() => {
     return items.filter(i => {

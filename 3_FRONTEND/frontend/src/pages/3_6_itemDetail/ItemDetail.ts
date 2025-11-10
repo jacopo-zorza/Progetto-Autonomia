@@ -1,14 +1,30 @@
 import React from 'react'
 import '../../styles/pages/item.css'
-import { getItem, listItems, Item } from '../../services/items'
-import { useParams, Link } from 'react-router-dom'
+import { getItem, listItems, Item, deleteItem, isItemOwnedByUser } from '../../services/items'
+import { getUser } from '../../services/auth'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 
 export default function ItemDetail(): React.ReactElement {
   const { id } = useParams()
   const item = id ? getItem(id) : undefined
+  const navigate = useNavigate()
+  const user = React.useMemo(() => getUser(), [])
 
   if (!item) {
     return React.createElement('div', { className: 'fs-container' }, React.createElement('h2', null, 'Oggetto non trovato'))
+  }
+
+  const isOwner = isItemOwnedByUser(item, user)
+
+  function handleDelete() {
+    if (!item) return
+    if (!window.confirm('Vuoi davvero eliminare questo annuncio?')) return
+    const removed = deleteItem(item.id)
+    if (!removed) {
+      window.alert('Si è verificato un errore durante l\'eliminazione.')
+      return
+    }
+    navigate('/items')
   }
 
   // Carica items simili (stessa categoria) oppure gli ultimi 4
@@ -57,9 +73,22 @@ export default function ItemDetail(): React.ReactElement {
         ),
 
         // Pulsante Acquista più piccolo, all'interno del riquadro dei dettagli, sotto descrizione/attributi
-        React.createElement('div', { style: { marginTop: '0.75rem' } },
-          React.createElement('button', { className: 'buy-btn small' }, 'Acquista ora')
-        ),
+        !isOwner
+          ? React.createElement('div', { style: { marginTop: '0.75rem' } },
+              React.createElement(Link, {
+                to: `/items/${item.id}/checkout`,
+                className: 'buy-btn small',
+                style: { display: 'inline-flex', justifyContent: 'center' }
+              }, 'Acquista ora')
+            )
+          : React.createElement('div', { className: 'owner-info-alert' }, 'Questo è uno dei tuoi annunci. Puoi modificarlo o eliminarlo dal pannello sottostante.'),
+
+        isOwner
+          ? React.createElement('div', { className: 'item-owner-actions' },
+              React.createElement(Link, { to: `/items/${item.id}/edit`, className: 'owner-action edit-action' }, 'Modifica annuncio'),
+              React.createElement('button', { type: 'button', className: 'owner-action delete-action', onClick: handleDelete }, 'Elimina annuncio')
+            )
+          : null,
 
         React.createElement('div', { className: 'item-actions' },
           React.createElement(Link, { to: '/items', className: 'pa-link' }, 'Torna agli oggetti')
