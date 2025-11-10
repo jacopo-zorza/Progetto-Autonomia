@@ -21,7 +21,7 @@ export default function Footer(): React.ReactElement {
         e('div', { className: 'fs-col' },
           e('h4', { className: 'fs-col-title' }, 'Assistenza'),
           e('ul', null,
-            e('li', null, e('a', { href: '#' }, 'Centro assistenza')),
+            e('li', null, e(Link, { to: '/support' }, 'Centro assistenza')),
             e('li', null, e('a', { href: '#' }, 'Regole della community')),
             e('li', null, e(Link, { to: '/support' }, 'Contattaci'))
           )
@@ -29,8 +29,8 @@ export default function Footer(): React.ReactElement {
         e('div', { className: 'fs-col' },
           e('h4', { className: 'fs-col-title' }, 'A proposito'),
           e('ul', null,
-            e('li', null, e('a', { href: '#' }, 'Chi siamo')),
-            e('li', null, e('a', { href: '#' }, 'Lavora con noi')),
+            e('li', null, e(Link, { to: '/about' }, 'Chi siamo')),
+            e('li', null, e(Link, { to: '/careers' }, 'Lavora con noi')),
             e('li', null, e('a', { href: '#' }, 'Privacy'))
           )
         ),

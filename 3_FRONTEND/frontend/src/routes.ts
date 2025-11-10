@@ -7,6 +7,7 @@ import Register from './pages/3_3_auth/Register'
 import Forgot from './pages/3_3_auth/Forgot'
 import Dashboard from './pages/3_8_profile/Dashboard'
 import About from './pages/3_2_home/About'
+import Careers from './pages/3_2_home/Careers'
 import ItemsList from './pages/3_5_items/ItemsList'
 import ItemDetail from './pages/3_6_itemDetail/ItemDetail'
 import CreateItem from './pages/3_4_createItem/CreateItem'
@@ -31,6 +32,7 @@ export default function Router(): React.ReactElement {
         { path: '/', element: React.createElement(App, null) },
   React.createElement(Route, { index: true, element: React.createElement(Home, null) }),
   React.createElement(Route, { path: 'about', element: React.createElement(About, null) }),
+  React.createElement(Route, { path: 'careers', element: React.createElement(Careers, null) }),
   React.createElement(Route, { path: 'login', element: React.createElement(Login, null) }),
   React.createElement(Route, { path: 'register', element: React.createElement(Register, null) }),
   React.createElement(Route, { path: 'forgot', element: React.createElement(Forgot, null) }),
