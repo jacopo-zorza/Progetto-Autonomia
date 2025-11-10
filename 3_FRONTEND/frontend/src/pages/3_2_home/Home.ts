@@ -2,12 +2,16 @@ import React, { useEffect, useMemo, useState } from 'react'
 import '../../styles/pages/home.css'
 import { Link } from 'react-router-dom'
 import { listItems, createItem, Item } from '../../services/items'
+import { getUser } from '../../services/auth'
+import { listFavorites, toggleFavorite } from '../../services/favorites'
 
 export default function Home(): React.ReactElement {
   const e = React.createElement
   const [items, setItems] = useState<Item[]>([])
   const [query, setQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
+  const currentUser = useMemo(() => getUser(), [])
+  const [favorites, setFavorites] = useState<string[]>(() => listFavorites(currentUser))
 
   useEffect(() => {
     let current = listItems()
@@ -27,7 +31,7 @@ export default function Home(): React.ReactElement {
     setItems(current)
   }, [])
 
-  const categories = React.useMemo(() => {
+  const categories = useMemo(() => {
     const base = new Set<string>()
     base.add('Abbigliamento')
     base.add('Elettronica')
@@ -41,16 +45,55 @@ export default function Home(): React.ReactElement {
     items.forEach(item => {
       if (item.category) base.add(item.category)
     })
+    if (favorites.length > 0) base.add('Preferiti')
     return Array.from(base)
-  }, [items])
+  }, [items, favorites])
+
+  const favoriteIds = useMemo(() => new Set(favorites), [favorites])
+
+  useEffect(() => {
+    function syncFavorites() {
+      setFavorites(listFavorites(currentUser))
+    }
+    syncFavorites()
+    try {
+      window.addEventListener('favorites-changed', syncFavorites)
+      window.addEventListener('auth-changed', syncFavorites)
+    } catch (error) {
+      // ignore if events unsupported
+    }
+    return () => {
+      try {
+        window.removeEventListener('favorites-changed', syncFavorites)
+        window.removeEventListener('auth-changed', syncFavorites)
+      } catch (error) {
+        // noop
+      }
+    }
+  }, [currentUser])
+
+  useEffect(() => {
+    if (favorites.length === 0 && activeCategory === 'Preferiti') {
+      setActiveCategory(null)
+    }
+  }, [favorites, activeCategory])
+
+  function handleToggleFavorite(event: any, itemId: string) {
+    event.preventDefault()
+    event.stopPropagation()
+    const next = toggleFavorite(itemId, currentUser)
+    setFavorites(next)
+  }
 
   const filtered = useMemo(() => {
+    const favoriteChecks = new Set(favorites)
     return items.filter(i => {
       const matchesQuery = query.trim() === '' || `${i.title} ${i.description}`.toLowerCase().includes(query.toLowerCase())
-      const matchesCategory = !activeCategory || (i.category && i.category.toLowerCase() === activeCategory.toLowerCase())
+      const matchesCategory = !activeCategory
+        || (activeCategory === 'Preferiti' ? favoriteChecks.has(i.id) : (i.category && i.category.toLowerCase() === activeCategory.toLowerCase()))
       return matchesQuery && matchesCategory
     })
-  }, [items, query, activeCategory])
+  }, [items, query, activeCategory, favorites])
 
   return e('div', { className: 'fs-home' },
       // Search bar area (centered like Vinted)
@@ -93,9 +136,18 @@ export default function Home(): React.ReactElement {
               e('div', { className: 'fs-card-media' },
                 e('img', { src: item.image ? item.image : `https://picsum.photos/seed/${item.id}/800/600`, alt: item.title, className: 'fs-card-img' }),
                 e('div', { className: 'fs-price' }, item.price ? `€ ${item.price}` : '-'),
-                e('button', { className: 'fs-fav', title: 'Aggiungi ai preferiti', onClick: (ev: any) => { ev.preventDefault(); /* mock */ } },
+                e('button', {
+                  className: `fs-fav ${favoriteIds.has(item.id) ? 'active' : ''}`,
+                  title: favoriteIds.has(item.id) ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti',
+                  onClick: (ev: any) => handleToggleFavorite(ev, item.id),
+                  type: 'button',
+                  'aria-pressed': favoriteIds.has(item.id)
+                },
                   e('svg', { width: '18', height: '18', viewBox: '0 0 24 24', fill: 'none', xmlns: 'http://www.w3.org/2000/svg' },
-                    e('path', { d: 'M12 21s-7.5-4.35-9.5-6.35C-0.5 11.5 3.5 6 8.5 6c2.5 0 3.5 1.5 3.5 1.5S14 6 16.5 6C21.5 6 25.5 11.5 21.5 14.65 19.5 16.65 12 21 12 21z', fill: '#fff', opacity: '0.95' })
+                    e('path', {
+                      d: 'M12 21s-7.5-4.35-9.5-6.35C-0.5 11.5 3.5 6 8.5 6c2.5 0 3.5 1.5 3.5 1.5S14 6 16.5 6C21.5 6 25.5 11.5 21.5 14.65 19.5 16.65 12 21 12 21z',
+                      fill: favoriteIds.has(item.id) ? '#dc2626' : '#d1d5db'
+                    })
                   )
                 )
               ),

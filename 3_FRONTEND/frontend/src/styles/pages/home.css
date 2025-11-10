@@ -97,7 +97,11 @@
 .fs-card-media { position:relative; }
 .fs-card-img { width:100%; height:220px; object-fit:cover; display:block; }
 .fs-price { position:absolute; left:8px; bottom:8px; background:rgba(0,0,0,0.75); color:#fff; padding:6px 8px; border-radius:8px; font-weight:700; }
-.fs-fav { position:absolute; right:8px; top:8px; background:rgba(255,255,255,0.85); border:none; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.fs-fav { position:absolute; right:8px; top:8px; background:rgba(255,255,255,0.85); border:none; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; transition: background 0.15s ease; }
+.fs-fav svg path { transition: fill 0.15s ease; }
+.fs-fav:hover { background:rgba(254,226,226,0.9); }
+.fs-fav.active { background:rgba(254,205,211,0.95); }
+.fs-fav.active svg path { fill:#dc2626; }
 .fs-card-body { padding:10px 12px 14px 12px; }
 .fs-card-title { font-weight:600; margin-bottom:6px; }
 .fs-card-sub { color:#6b7280; font-size:0.9rem; height:36px; overflow:hidden; }

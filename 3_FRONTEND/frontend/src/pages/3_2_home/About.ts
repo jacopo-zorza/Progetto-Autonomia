@@ -17,7 +17,7 @@ export default function About(): React.ReactElement {
       e('div', { className: 'about-grid' },
         e('div', { className: 'about-card' },
           e('h2', { className: 'about-card-title' }, 'La nostra missione'),
-          e('p', null, 'Rendere semplice lo scambio di oggetti nella tua comunità: usabilità, privacy e performance sono al centro del progetto. Questo prototipo dimostra pattern di UI/UX per un marketplace minimale.')
+          e('p', null, 'Rendere semplice lo scambio di oggetti nella tua comunità: usabilità, privacy e performance sono al centro del progetto.')
         ),
 
         e('div', { className: 'about-card' },
@@ -31,7 +31,7 @@ export default function About(): React.ReactElement {
 
         e('div', { className: 'about-card' },
           e('h2', { className: 'about-card-title' }, 'Team & contatti'),
-          e('p', null, 'Sviluppato da Progetto Autonomia. Per richieste prova a contattare il manutentore del repository.')
+          e('p', null, 'Sviluppato da Gabriel Lutteri e Jacopo Zorza. Per richieste prova a contattare tramite email.')
         )
       ),
 
