@@ -1,16 +1,25 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { isAuthenticated, getUser, logout } from '../../services/auth'
+import ConfirmDialog from '../../components/ConfirmDialog'
 
 export default function Header(): React.ReactElement {
   const navigate = useNavigate()
 
   function goBack() { navigate(-1) }
-  function doLogout() { logout(); navigate('/') }
   const location = useLocation()
 
   const [authState, setAuthState] = useState(isAuthenticated())
   const [, setUser] = useState(getUser())
+  const [showConfirm, setShowConfirm] = useState(false)
+
+  function requestLogout() { setShowConfirm(true) }
+  function cancelLogout() { setShowConfirm(false) }
+  function confirmLogout() {
+    setShowConfirm(false)
+    logout()
+    navigate('/')
+  }
 
   useEffect(() => {
     function onAuth(){ setAuthState(isAuthenticated()); setUser(getUser()) }
@@ -18,7 +27,7 @@ export default function Header(): React.ReactElement {
     return () => window.removeEventListener('auth-changed', onAuth)
   }, [])
 
-  return React.createElement(
+  const headerEl = React.createElement(
     'header',
     { className: 'fs-header' },
     React.createElement(
@@ -51,10 +60,19 @@ export default function Header(): React.ReactElement {
             React.createElement(Link, { to: '/' , className: 'fs-nav-link' }, 'Home'),
             React.createElement(Link, { to: '/items', className: 'fs-nav-link' }, 'Oggetti'),
             React.createElement(Link, { to: '/dashboard', className: 'fs-nav-link' }, 'Account'),
-            React.createElement('button', { onClick: doLogout, className: 'fs-nav-cta' }, 'Esci')
+            React.createElement('button', { onClick: requestLogout, className: 'fs-nav-cta' }, 'Esci')
           )
         )
       )
     )
   )
+
+  const confirmEl = React.createElement(ConfirmDialog, {
+    open: showConfirm,
+    message: 'Sei sicuro di voler uscire?',
+    onConfirm: confirmLogout,
+    onCancel: cancelLogout
+  })
+
+  return React.createElement(React.Fragment, null, headerEl, confirmEl)
 }

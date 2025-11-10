@@ -52,3 +52,14 @@ body{ background: var(--pa-white); color: var(--pa-dark); }
 	.fs-logo-text { display:none }
 }
 
+.fs-modal-overlay { position: fixed; inset: 0; background: rgba(4, 15, 15, 0.5); display: flex; align-items: center; justify-content: center; padding: 1.5rem; z-index: 1000; }
+.fs-modal-card { background: #fff; border-radius: 0.75rem; padding: 1.5rem; width: 100%; max-width: 320px; text-align: center; box-shadow: 0 20px 40px rgba(4, 15, 15, 0.15); border: 1px solid rgba(4, 15, 15, 0.08); }
+.fs-modal-message { font-size: 1rem; margin-bottom: 1.25rem; color: var(--pa-dark); font-weight: 600; }
+.fs-modal-actions { display: flex; justify-content: center; gap: 1rem; }
+.fs-modal-btn { padding: 0.5rem 1.25rem; border-radius: 0.5rem; border: none; cursor: pointer; font-weight: 600; }
+.fs-modal-btn.confirm { background: var(--pa-green); color: #fff; }
+.fs-modal-btn.cancel { background: #e5e7eb; color: #111827; }
+.fs-modal-btn:focus { outline: 2px solid rgba(43, 168, 74, 0.45); outline-offset: 2px; }
+.fs-modal-btn.cancel:hover { background: #d1d5db; }
+.fs-modal-btn.confirm:hover { background: #23853b; }
+

@@ -3,13 +3,22 @@ import '../../styles/pages/account.css'
 import { getUser, logout, updateUserProfile } from '../../services/auth'
 import { useNavigate, Link } from 'react-router-dom'
 import { listItems } from '../../services/items'
+import ConfirmDialog from '../../components/ConfirmDialog'
 
 export default function Dashboard(): React.ReactElement {
   const navigate = useNavigate()
-  function doLogout(){ logout(); navigate('/') }
 
   const [curUser, setCurUser] = useState<any>(getUser())
   const username = curUser?.username || curUser?.user || curUser?.email || null
+  const [showConfirm, setShowConfirm] = useState(false)
+
+  function requestLogout(){ setShowConfirm(true) }
+  function cancelLogout(){ setShowConfirm(false) }
+  function confirmLogout(){
+    setShowConfirm(false)
+    logout()
+    navigate('/')
+  }
   // input file will be referenced by id to avoid ref warnings
 
   // lista degli item dell'utente (matching su owner)
@@ -41,7 +50,7 @@ export default function Dashboard(): React.ReactElement {
 
   const [activeTab, setActiveTab] = useState<'items'|'sales'>('items')
 
-  return React.createElement('div', { className: 'fs-container center-page' },
+  const dashboardEl = React.createElement('div', { className: 'fs-container center-page' },
     React.createElement('div', { className: 'profile-wrap' },
       React.createElement('div', { className: 'account-hero profile-hero pa-card' },
         React.createElement('div', { className: 'profile-left' },
@@ -59,7 +68,7 @@ export default function Dashboard(): React.ReactElement {
             ),
             React.createElement('div', { className: 'account-actions' },
               React.createElement(Link, { to: '/create', className: 'pa-btn' }, 'Vendi subito'),
-              React.createElement('button', { className: 'pa-btn ghost', onClick: doLogout }, 'Logout')
+              React.createElement('button', { className: 'pa-btn ghost', onClick: requestLogout }, 'Logout')
             )
           )
         )),
@@ -123,4 +132,13 @@ export default function Dashboard(): React.ReactElement {
       )
     )
   )
+
+  const confirmEl = React.createElement(ConfirmDialog, {
+    open: showConfirm,
+    message: 'Sei sicuro di voler uscire?',
+    onConfirm: confirmLogout,
+    onCancel: cancelLogout
+  })
+
+  return React.createElement(React.Fragment, null, dashboardEl, confirmEl)
 }
