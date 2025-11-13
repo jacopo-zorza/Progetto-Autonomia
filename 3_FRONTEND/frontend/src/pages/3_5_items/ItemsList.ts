@@ -5,28 +5,47 @@ import { Link } from 'react-router-dom'
 import { getUser } from '../../services/auth'
 
 export default function ItemsList(): React.ReactElement {
-  const [items, setItems] = React.useState<Item[]>(() => listItems())
+  const [items, setItems] = React.useState<Item[]>([])
+  const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
   const currentUser = React.useMemo(() => getUser(), [])
 
-  function refresh() {
-    setItems(listItems())
-  }
+  const loadItems = React.useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await listItems()
+      setItems(data)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Impossibile caricare gli annunci'
+      setError(message)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
-  function handleDelete(id: string) {
+  React.useEffect(() => {
+    loadItems()
+  }, [loadItems])
+
+  async function handleDelete(id: string) {
     const confirmDelete = window.confirm('Vuoi rimuovere questo annuncio dalla lista?')
     if (!confirmDelete) return
-    const removed = deleteItem(id)
-    if (!removed) {
-      window.alert('Non è stato possibile eliminare l\'annuncio. Riprova più tardi.')
-      return
+    try {
+      await deleteItem(id)
+      await loadItems()
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Non è stato possibile eliminare l\'annuncio. Riprova più tardi.'
+      window.alert(message)
     }
-    refresh()
   }
 
   return React.createElement(
     'div',
     null,
     React.createElement('h2', { className: 'text-xl pa-heading mb-4' }, 'Elenco oggetti'),
+    loading ? React.createElement('p', { className: 'pa-desc' }, 'Caricamento in corso...') : null,
+    error ? React.createElement('div', { className: 'pa-error' }, error) : null,
     React.createElement(
       'div',
       { className: 'grid gap-4' },

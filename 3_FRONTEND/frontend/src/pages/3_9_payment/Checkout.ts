@@ -1,7 +1,7 @@
 import React from 'react'
 import '../../styles/pages/payment.css'
 import { useParams, Link } from 'react-router-dom'
-import { getItem } from '../../services/items'
+import { getItem, Item } from '../../services/items'
 import { createOrder, OrderRecord } from '../../services/payments'
 import { getUser, getWalletBalance, adjustWalletBalance } from '../../services/auth'
 
@@ -38,7 +38,9 @@ function createInitialFormState(prefill?: Partial<FormState>): FormState {
 
 export default function Checkout(): React.ReactElement {
   const { id } = useParams()
-  const item = id ? getItem(id) : undefined
+  const [item, setItem] = React.useState<Item | undefined>(undefined)
+  const [loadingItem, setLoadingItem] = React.useState(true)
+  const [loadError, setLoadError] = React.useState<string | null>(null)
   function buildInitialForm(): FormState {
     const user = getUser()
     const prefill: Partial<FormState> = {}
@@ -56,6 +58,45 @@ export default function Checkout(): React.ReactElement {
   const [order, setOrder] = React.useState<OrderRecord | null>(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [walletBalance, setWalletBalance] = React.useState(0)
+
+  React.useEffect(() => {
+    if (!id) {
+      setLoadError('Oggetto non disponibile')
+      setLoadingItem(false)
+      setItem(undefined)
+      return
+    }
+
+    let cancelled = false
+
+    async function fetchItem() {
+      setLoadingItem(true)
+      setLoadError(null)
+      try {
+        const data = await getItem(id)
+        if (cancelled) return
+        if (!data) {
+          setItem(undefined)
+          setLoadError('Oggetto non disponibile')
+          return
+        }
+        setItem(data)
+      } catch (err) {
+        if (!cancelled) {
+          const message = err instanceof Error ? err.message : 'Impossibile caricare l\'oggetto selezionato'
+          setLoadError(message)
+        }
+      } finally {
+        if (!cancelled) setLoadingItem(false)
+      }
+    }
+
+    fetchItem()
+
+    return () => {
+      cancelled = true
+    }
+  }, [id])
 
   React.useEffect(() => {
     setForm(buildInitialForm())
@@ -78,11 +119,19 @@ export default function Checkout(): React.ReactElement {
     }
   }, [])
 
-  if (!item) {
+  if (loadingItem) {
     return React.createElement(
       'div',
       { className: 'checkout-container' },
-      React.createElement('h2', { className: 'checkout-title' }, 'Oggetto non disponibile'),
+      React.createElement('h2', { className: 'checkout-title' }, 'Caricamento oggetto...')
+    )
+  }
+
+  if (!item || loadError) {
+    return React.createElement(
+      'div',
+      { className: 'checkout-container' },
+      React.createElement('h2', { className: 'checkout-title' }, loadError || 'Oggetto non disponibile'),
       React.createElement('p', { className: 'checkout-text' }, 'L\'oggetto selezionato non è più presente nel catalogo.'),
       React.createElement(Link, { to: '/items', className: 'pa-link' }, 'Torna agli oggetti')
     )

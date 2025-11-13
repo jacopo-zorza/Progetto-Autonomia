@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import '../../styles/pages/home.css'
 import { Link } from 'react-router-dom'
-import { listItems, createItem, Item } from '../../services/items'
+import { listItems, Item } from '../../services/items'
 import { getUser } from '../../services/auth'
 import { listFavorites, toggleFavorite } from '../../services/favorites'
 
@@ -10,25 +10,52 @@ export default function Home(): React.ReactElement {
   const [items, setItems] = useState<Item[]>([])
   const [query, setQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
+  const [locationQuery, setLocationQuery] = useState('')
+  const [locationDraft, setLocationDraft] = useState('')
+  const [showLocationPicker, setShowLocationPicker] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const currentUser = useMemo(() => getUser(), [])
   const [favorites, setFavorites] = useState<string[]>(() => listFavorites(currentUser))
 
   useEffect(() => {
-    let current = listItems()
-    if (!current || current.length === 0) {
-      // crea alcuni demo items per la home
-      const demos = [
-        { title: 'Giacca invernale', description: 'Calda, usata una stagione', price: 45, owner: 'luca', ownerName: 'Luca', category: 'Abbigliamento', condition: 'Usato', location: 'Milano' },
-        { title: 'Borsa in pelle', description: 'Vintage, ottime condizioni', price: 60, owner: 'martina', ownerName: 'Martina', category: 'Abbigliamento', condition: 'Come nuova', location: 'Torino' },
-        { title: 'Smartphone usato', description: 'Perfetto stato, 64GB', price: 120, owner: 'andrea', ownerName: 'Andrea', category: 'Elettronica', condition: 'Ottimo', location: 'Bologna' },
-        { title: 'Lampada design', description: 'Ideale per soggiorno', price: 25, owner: 'sara', ownerName: 'Sara', category: 'Casa', condition: 'Usato', location: 'Verona' },
-        { title: 'Bicicletta city', description: 'Serviziata, freni nuovi', price: 150, owner: 'marco', ownerName: 'Marco', category: 'Sport', condition: 'Buono', location: 'Padova' },
-        { title: 'Scarpe da corsa', description: 'Taglia 42, quasi nuove', price: 30, owner: 'elena', ownerName: 'Elena', category: 'Sport', condition: 'Come nuove', location: 'Trieste' }
-      ]
-      demos.forEach(d => createItem(d))
-      current = listItems()
+    let cancelled = false
+
+    async function loadItems() {
+      setLoading(true)
+      setError(null)
+      try {
+        const data = await listItems()
+        if (!cancelled) {
+          if (Array.isArray(data) && data.length > 0) {
+            setItems(data)
+          } else {
+            const fallback: Item[] = [
+              { id: 'demo-1', title: 'Giacca invernale', description: 'Calda, usata una stagione', price: 45, owner: 'luca', ownerName: 'Luca', category: 'Abbigliamento', condition: 'Usato', location: 'Milano' },
+              { id: 'demo-2', title: 'Borsa in pelle', description: 'Vintage, ottime condizioni', price: 60, owner: 'martina', ownerName: 'Martina', category: 'Abbigliamento', condition: 'Come nuova', location: 'Torino' },
+              { id: 'demo-3', title: 'Smartphone usato', description: 'Perfetto stato, 64GB', price: 120, owner: 'andrea', ownerName: 'Andrea', category: 'Elettronica', condition: 'Ottimo', location: 'Bologna' },
+              { id: 'demo-4', title: 'Lampada design', description: 'Ideale per soggiorno', price: 25, owner: 'sara', ownerName: 'Sara', category: 'Casa', condition: 'Usato', location: 'Verona' },
+              { id: 'demo-5', title: 'Bicicletta city', description: 'Serviziata, freni nuovi', price: 150, owner: 'marco', ownerName: 'Marco', category: 'Sport', condition: 'Buono', location: 'Padova' },
+              { id: 'demo-6', title: 'Scarpe da corsa', description: 'Taglia 42, quasi nuove', price: 30, owner: 'elena', ownerName: 'Elena', category: 'Sport', condition: 'Come nuove', location: 'Trieste' }
+            ]
+            setItems(fallback)
+          }
+        }
+      } catch (err) {
+        if (!cancelled) {
+          const message = err instanceof Error ? err.message : 'Impossibile recuperare gli annunci'
+          setError(message)
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
     }
-    setItems(current)
+
+    loadItems()
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const categories = useMemo(() => {
@@ -89,11 +116,33 @@ export default function Home(): React.ReactElement {
     const favoriteChecks = new Set(favorites)
     return items.filter(i => {
       const matchesQuery = query.trim() === '' || `${i.title} ${i.description}`.toLowerCase().includes(query.toLowerCase())
+      const matchesLocation = locationQuery.trim() === '' || (i.location && i.location.toLowerCase().includes(locationQuery.toLowerCase()))
       const matchesCategory = !activeCategory
         || (activeCategory === 'Preferiti' ? favoriteChecks.has(i.id) : (i.category && i.category.toLowerCase() === activeCategory.toLowerCase()))
-      return matchesQuery && matchesCategory
+      return matchesQuery && matchesCategory && matchesLocation
     })
-  }, [items, query, activeCategory, favorites])
+  }, [items, query, locationQuery, activeCategory, favorites])
+
+  function toggleLocationPicker() {
+    setShowLocationPicker(prev => {
+      const next = !prev
+      if (!prev) {
+        setLocationDraft(locationQuery)
+      }
+      return next
+    })
+  }
+
+  function applyLocationFilter() {
+    setLocationQuery(locationDraft.trim())
+    setShowLocationPicker(false)
+  }
+
+  function clearLocationFilter() {
+    setLocationDraft('')
+    setLocationQuery('')
+    setShowLocationPicker(false)
+  }
 
   return e('div', { className: 'fs-home' },
       // Search bar area (centered like Vinted)
@@ -104,6 +153,32 @@ export default function Home(): React.ReactElement {
             e('p', { className: 'fs-sub' }, 'Compra, vendi e trova occasioni vicino a te')
           ),
           e('form', { className: 'fs-search', onSubmit: (ev: any) => { ev.preventDefault(); /* search handled by query state */ } },
+            e('div', { className: 'fs-search-location-wrap' },
+              e('button', {
+                type: 'button',
+                className: `fs-search-location ${locationQuery ? 'active' : ''}`,
+                onClick: toggleLocationPicker,
+                'aria-expanded': showLocationPicker,
+                'aria-haspopup': 'true'
+              },
+                e('span', { className: 'fs-search-location-icon' }, '📍'),
+                e('span', { className: 'fs-search-location-label' }, locationQuery ? locationQuery : 'Posizione')
+              ),
+              showLocationPicker ? e('div', { className: 'fs-location-popover' },
+                e('label', { className: 'fs-location-label' }, 'Filtra per città o zona'),
+                e('input', {
+                  type: 'text',
+                  className: 'fs-location-input',
+                  placeholder: 'Es. Milano, Torino, Bologna...',
+                  value: locationDraft,
+                  onChange: (ev: any) => setLocationDraft(ev.target.value)
+                }),
+                e('div', { className: 'fs-location-actions' },
+                  e('button', { type: 'button', className: 'fs-location-clear', onClick: clearLocationFilter }, 'Azzera'),
+                  e('button', { type: 'button', className: 'fs-location-apply', onClick: applyLocationFilter }, 'Applica')
+                )
+              ) : null
+            ),
             e('input', { type: 'text', className: 'fs-search-input', placeholder: 'Cerca articoli, marche, tag...', value: query, onChange: (ev: any) => setQuery(ev.target.value) }),
             e('button', { className: 'fs-search-btn', type: 'submit' }, 'Cerca')
           )
@@ -129,6 +204,8 @@ export default function Home(): React.ReactElement {
 
       // Grid of items (Vinted-like cards)
       e('main', { className: 'fs-container' },
+        error ? e('p', { className: 'fs-error' }, error) : null,
+        loading ? e('p', { className: 'fs-loading' }, 'Caricamento annunci...') : null,
         e('div', { className: 'fs-grid' },
           filtered.map((item, idx) =>
             e(Link, { to: `/items/${item.id}`, key: `${item.id}-${idx}`, className: 'fs-card' },

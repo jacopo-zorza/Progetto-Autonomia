@@ -18,6 +18,7 @@ export default function CreateItem(): React.ReactElement {
   const [imageData, setImageData] = React.useState<string | null>(null)
   const [loadingImage, setLoadingImage] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [saving, setSaving] = React.useState(false)
 
   const fileInputRef = React.useRef<HTMLInputElement | null>(null)
 
@@ -63,7 +64,7 @@ export default function CreateItem(): React.ReactElement {
     reader.readAsDataURL(file)
   }
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     const trimmedTitle = title.trim()
     const trimmedDesc = desc.trim()
@@ -75,30 +76,38 @@ export default function CreateItem(): React.ReactElement {
     if (!category) newErrors.push('Seleziona una categoria')
     if (!condition) newErrors.push('Indica la condizione')
 
-  const normalizedPrice = price.trim() ? Number.parseFloat(price.replace(',', '.')) : undefined
-  const finalPrice = normalizedPrice !== undefined && Number.isFinite(normalizedPrice) ? Number(normalizedPrice.toFixed(2)) : undefined
+    const normalizedPrice = price.trim() ? Number.parseFloat(price.replace(',', '.')) : undefined
+    const finalPrice = normalizedPrice !== undefined && Number.isFinite(normalizedPrice) ? Number(normalizedPrice.toFixed(2)) : undefined
 
     if (normalizedPrice !== undefined && !Number.isFinite(normalizedPrice)) newErrors.push('Inserisci un prezzo valido')
+    if (finalPrice === undefined) newErrors.push('Inserisci un prezzo valido')
 
     if (newErrors.length > 0) {
       setError(newErrors.join(' • '))
       return
     }
 
-    const created = createItem({
-      title: trimmedTitle,
-      description: trimmedDesc,
-      price: finalPrice,
-      category,
-      condition,
-      location: trimmedLocation || undefined,
-      image: imageData || undefined,
-      owner: ownerUsername || undefined,
-      ownerName: ownerDisplayName || ownerUsername || 'Tu',
-      ownerId: ownerId || undefined
-    })
+    try {
+      setSaving(true)
+      const created = await createItem({
+        title: trimmedTitle,
+        description: trimmedDesc,
+        price: finalPrice,
+        category,
+        condition,
+        location: trimmedLocation || undefined,
+        image: imageData || undefined,
+        owner: ownerUsername || undefined,
+        ownerName: ownerDisplayName || ownerUsername || 'Tu',
+        ownerId: ownerId || undefined
+      })
 
-    navigate(`/items/${created.id}`)
+      navigate(`/items/${created.id}`)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Impossibile creare l\'annuncio in questo momento'
+      setError(message)
+      setSaving(false)
+    }
   }
 
   return React.createElement(
@@ -196,8 +205,8 @@ export default function CreateItem(): React.ReactElement {
               }, 'Rimuovi foto') : null
             )
           ),
-          React.createElement('div', { className: 'create-actions full' },
-            React.createElement('button', { type: 'submit', className: 'pa-btn create-submit' }, 'Pubblica annuncio')
+            React.createElement('div', { className: 'create-actions full' },
+            React.createElement('button', { type: 'submit', className: 'pa-btn create-submit', disabled: saving }, saving ? 'Pubblicazione...' : 'Pubblica annuncio')
           )
         )
       ),

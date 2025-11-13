@@ -1,7 +1,7 @@
 import React from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import '../../styles/pages/create.css'
-import { getItem, updateItem, deleteItem, isItemOwnedByUser } from '../../services/items'
+import { getItem, updateItem, deleteItem, isItemOwnedByUser, Item } from '../../services/items'
 import { getUser } from '../../services/auth'
 
 const categories = ['Abbigliamento', 'Elettronica', 'Casa', 'Sport', 'Bambini', 'Libri', 'Collezionismo', 'Motori', 'Altro']
@@ -10,36 +10,74 @@ const conditions = ['Nuovo', 'Come nuovo', 'Ottimo', 'Buono', 'Usato']
 export default function EditItem(): React.ReactElement {
   const navigate = useNavigate()
   const { id } = useParams()
-  const item = id ? getItem(id) : undefined
+  const [item, setItem] = React.useState<Item | undefined>(undefined)
+  const [loadingItem, setLoadingItem] = React.useState(true)
+  const [loadError, setLoadError] = React.useState<string | null>(null)
   const currentUser = React.useMemo(() => getUser(), [])
   const isOwner = React.useMemo(() => isItemOwnedByUser(item, currentUser), [item, currentUser])
 
-  const [title, setTitle] = React.useState(item?.title ?? '')
-  const [desc, setDesc] = React.useState(item?.description ?? '')
-  const [price, setPrice] = React.useState(item?.price !== undefined ? item.price.toString() : '')
-  const [category, setCategory] = React.useState(item?.category ?? '')
-  const [condition, setCondition] = React.useState(item?.condition ?? 'Nuovo')
-  const [location, setLocation] = React.useState(item?.location ?? '')
-  const [imageData, setImageData] = React.useState<string | null>(item?.image ?? null)
+  const [title, setTitle] = React.useState('')
+  const [desc, setDesc] = React.useState('')
+  const [price, setPrice] = React.useState('')
+  const [category, setCategory] = React.useState('')
+  const [condition, setCondition] = React.useState('Nuovo')
+  const [location, setLocation] = React.useState('')
+  const [imageData, setImageData] = React.useState<string | null>(null)
   const [loadingImage, setLoadingImage] = React.useState(false)
-  const [error, setError] = React.useState<string | null>(null)
+  const [formError, setFormError] = React.useState<string | null>(null)
   const [saving, setSaving] = React.useState(false)
 
   const fileInputRef = React.useRef<HTMLInputElement | null>(null)
 
   React.useEffect(() => {
-    if (!item) return
-    setTitle(item.title)
-    setDesc(item.description)
-    setPrice(item.price !== undefined ? item.price.toString() : '')
-    setCategory(item.category ?? '')
-    setCondition(item.condition ?? 'Nuovo')
-    setLocation(item.location ?? '')
-    setImageData(item.image ?? null)
-  }, [item?.id])
+    if (!id) {
+      setLoadError('Annuncio non trovato')
+      setLoadingItem(false)
+      return
+    }
+
+    let cancelled = false
+
+    async function fetchItem() {
+      setLoadingItem(true)
+      setLoadError(null)
+      try {
+        const data = await getItem(id)
+        if (cancelled) return
+
+        if (!data) {
+          setItem(undefined)
+          setLoadError('Annuncio non trovato')
+          return
+        }
+
+        setItem(data)
+        setTitle(data.title ?? '')
+        setDesc(data.description ?? '')
+        setPrice(data.price !== undefined && data.price !== null ? data.price.toString() : '')
+        setCategory(data.category ?? '')
+        setCondition(data.condition ?? 'Nuovo')
+        setLocation(data.location ?? '')
+        setImageData(data.image ?? null)
+      } catch (err) {
+        if (!cancelled) {
+          const message = err instanceof Error ? err.message : 'Impossibile caricare l\'annuncio'
+          setLoadError(message)
+        }
+      } finally {
+        if (!cancelled) setLoadingItem(false)
+      }
+    }
+
+    fetchItem()
+
+    return () => {
+      cancelled = true
+    }
+  }, [id])
 
   function clearError() {
-    if (error) setError(null)
+    if (formError) setFormError(null)
   }
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -49,7 +87,7 @@ export default function EditItem(): React.ReactElement {
       return
     }
     if (file.size > 5 * 1024 * 1024) {
-      setError('Carica un\'immagine inferiore a 5MB')
+      setFormError('Carica un\'immagine inferiore a 5MB')
       return
     }
     const reader = new FileReader()
@@ -59,7 +97,7 @@ export default function EditItem(): React.ReactElement {
       setLoadingImage(false)
     }
     reader.onerror = () => {
-      setError('Errore nel caricamento dell\'immagine')
+      setFormError('Errore nel caricamento dell\'immagine')
       setLoadingImage(false)
     }
     reader.readAsDataURL(file)
@@ -78,12 +116,12 @@ export default function EditItem(): React.ReactElement {
     return issues
   }
 
-  function onSubmit(event: React.FormEvent) {
+  async function onSubmit(event: React.FormEvent) {
     event.preventDefault()
     if (!item || !id) return
     const issues = validate()
     if (issues.length) {
-      setError(issues.join(' • '))
+      setFormError(issues.join(' • '))
       return
     }
 
@@ -92,7 +130,7 @@ export default function EditItem(): React.ReactElement {
 
     setSaving(true)
     try {
-      const updated = updateItem(id, {
+      const updated = await updateItem(id, {
         title: title.trim(),
         description: desc.trim(),
         price: finalPrice,
@@ -102,31 +140,43 @@ export default function EditItem(): React.ReactElement {
         image: imageData || undefined
       })
       if (!updated) {
-        setError('Impossibile aggiornare l\'annuncio. Riprova più tardi.')
+        setFormError('Impossibile aggiornare l\'annuncio. Riprova più tardi.')
         return
       }
       navigate(`/items/${id}`)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Impossibile aggiornare l\'annuncio. Riprova più tardi.'
+      setFormError(message)
     } finally {
       setSaving(false)
     }
   }
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!item || !id) return
     const confirmDelete = window.confirm('Vuoi davvero eliminare questo annuncio? L\'operazione non può essere annullata.')
     if (!confirmDelete) return
-    const removed = deleteItem(id)
-    if (!removed) {
-      setError('Non è stato possibile eliminare l\'annuncio.')
-      return
+    try {
+      await deleteItem(id)
+      navigate('/items')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Non è stato possibile eliminare l\'annuncio.'
+      setFormError(message)
     }
-    navigate('/items')
   }
 
-  if (!id || !item) {
+  if (loadingItem) {
     return React.createElement('div', { className: 'fs-container create-page' },
       React.createElement('div', { className: 'pa-card create-form-card' },
-        React.createElement('h2', { className: 'pa-heading' }, 'Annuncio non trovato'),
+        React.createElement('h2', { className: 'pa-heading' }, 'Caricamento annuncio...')
+      )
+    )
+  }
+
+  if (!id || loadError || !item) {
+    return React.createElement('div', { className: 'fs-container create-page' },
+      React.createElement('div', { className: 'pa-card create-form-card' },
+        React.createElement('h2', { className: 'pa-heading' }, loadError || 'Annuncio non trovato'),
         React.createElement('p', null, 'L\'oggetto che vuoi modificare non esiste più o è stato rimosso.'),
         React.createElement(Link, { to: '/items', className: 'pa-link' }, 'Torna agli oggetti')
       )
@@ -150,7 +200,7 @@ export default function EditItem(): React.ReactElement {
       React.createElement('section', { className: 'pa-card create-form-card' },
         React.createElement('h2', { className: 'pa-heading' }, 'Modifica annuncio'),
         React.createElement('p', { className: 'create-sub' }, 'Aggiorna le informazioni del tuo annuncio per mantenerlo sempre accurato.'),
-        error ? React.createElement('div', { className: 'create-error' }, error) : null,
+        formError ? React.createElement('div', { className: 'create-error' }, formError) : null,
         React.createElement('form', { className: 'create-form-grid', onSubmit },
           React.createElement('label', { className: 'create-field' },
             React.createElement('span', { className: 'create-label' }, 'Titolo'),

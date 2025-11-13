@@ -240,3 +240,39 @@ def refresh():
             "success": False,
             "message": f"Errore server: {str(e)}"
         }), 500
+
+
+@auth_bp.route('/profile', methods=['PATCH'])
+@jwt_required()
+def update_profile():
+    """Aggiorna i dati del profilo dell'utente autenticato."""
+    try:
+        data = request.get_json() or {}
+        allowed_fields = {"first_name", "last_name", "phone", "profile_image"}
+        updates = {key: value for key, value in data.items() if key in allowed_fields}
+
+        if not updates:
+            return jsonify({
+                "success": False,
+                "message": "Nessun dato da aggiornare"
+            }), 400
+
+        current_user_id = int(get_jwt_identity())
+        success, message, user = AuthService.update_user_profile(current_user_id, **updates)
+
+        status_code = 200 if success else 400
+        response_body = {
+            "success": success,
+            "message": message
+        }
+
+        if user:
+            response_body["user"] = AuthService.serialize_user(user)
+
+        return jsonify(response_body), status_code
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": f"Errore server: {str(e)}"
+        }), 500

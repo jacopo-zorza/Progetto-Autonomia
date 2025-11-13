@@ -127,24 +127,12 @@ def get_item(item_id):
                 "message": "Oggetto non trovato"
             }), 404
         
+        serialized = ItemsService.serialize_item(item)
+        serialized["reviews_count"] = item.reviews.count()
+        serialized["transactions_count"] = item.transactions.count()
         return jsonify({
             "success": True,
-            "data": {
-                "id": item.id,
-                "name": item.name,
-                "description": item.description,
-                "price": item.price,
-                "latitude": item.latitude,
-                "longitude": item.longitude,
-                "seller": {
-                    "id": item.seller.id,
-                    "username": item.seller.username,
-                    "email": item.seller.email
-                },
-                "created_at": item.created_at.isoformat(),
-                "reviews_count": item.reviews.count(),
-                "transactions_count": item.transactions.count()
-            }
+            "data": serialized
         }), 200
         
     except Exception as e:
@@ -166,9 +154,13 @@ def create_item():
         "Authorization": "Bearer <access_token>"
     }
     Body: {
-        "name": "Bicicletta mountain bike",
+        "title": "Bicicletta mountain bike",
         "description": "Bici usata in ottimo stato",
         "price": 250.00,
+        "category": "Sport",
+        "condition": "Buono",
+        "location": "Milano",
+        "image": "data:image/png;base64,...",
         "latitude": 45.4642,  // opzionale
         "longitude": 9.1900   // opzionale
     }
@@ -190,18 +182,26 @@ def create_item():
                 "message": "Dati mancanti"
             }), 400
         
-        name = data.get('name', '').strip()
+        title = data.get('title', '').strip()
         description = data.get('description', '').strip() if data.get('description') else None
         price = data.get('price')
+        category = data.get('category')
+        condition = data.get('condition')
+        location = data.get('location') or data.get('location_name')
+        image = data.get('image') or data.get('image_url')
         latitude = data.get('latitude')
         longitude = data.get('longitude')
         
         # Crea item
         success, message, item = ItemsService.create_item(
             seller_id=current_user_id,
-            name=name,
+            title=title,
             price=price,
             description=description,
+            category=category,
+            condition=condition,
+            location=location,
+            image=image,
             latitude=latitude,
             longitude=longitude
         )
@@ -215,16 +215,7 @@ def create_item():
         return jsonify({
             "success": True,
             "message": message,
-            "data": {
-                "id": item.id,
-                "name": item.name,
-                "description": item.description,
-                "price": item.price,
-                "latitude": item.latitude,
-                "longitude": item.longitude,
-                "seller_id": item.seller_id,
-                "created_at": item.created_at.isoformat()
-            }
+            "data": ItemsService.serialize_item(item)
         }), 201
         
     except Exception as e:
@@ -245,9 +236,13 @@ def update_item(item_id):
         "Authorization": "Bearer <access_token>"
     }
     Body: {
-        "name": "Nuovo nome",  // opzionale
+        "title": "Nuovo titolo",  // opzionale
         "description": "Nuova descrizione",  // opzionale
         "price": 300.00,  // opzionale
+        "category": "Sport",  // opzionale
+        "condition": "Ottimo",  // opzionale
+        "location": "Monza",  // opzionale
+        "image": "data:image/png;base64,...",  // opzionale
         "latitude": 45.4642,  // opzionale
         "longitude": 9.1900  // opzionale
     }
@@ -273,12 +268,20 @@ def update_item(item_id):
         
         # Prepara dati per update (solo campi forniti)
         update_data = {}
-        if 'name' in data:
-            update_data['name'] = data['name']
+        if 'title' in data:
+            update_data['title'] = data['title']
         if 'description' in data:
             update_data['description'] = data['description']
         if 'price' in data:
             update_data['price'] = data['price']
+        if 'category' in data:
+            update_data['category'] = data['category']
+        if 'condition' in data:
+            update_data['condition'] = data['condition']
+        if 'location' in data or 'location_name' in data:
+            update_data['location'] = data.get('location', data.get('location_name'))
+        if 'image' in data or 'image_url' in data:
+            update_data['image'] = data.get('image', data.get('image_url'))
         if 'latitude' in data:
             update_data['latitude'] = data['latitude']
         if 'longitude' in data:
@@ -301,16 +304,7 @@ def update_item(item_id):
         return jsonify({
             "success": True,
             "message": message,
-            "data": {
-                "id": item.id,
-                "name": item.name,
-                "description": item.description,
-                "price": item.price,
-                "latitude": item.latitude,
-                "longitude": item.longitude,
-                "seller_id": item.seller_id,
-                "created_at": item.created_at.isoformat()
-            }
+            "data": ItemsService.serialize_item(item)
         }), 200
         
     except Exception as e:

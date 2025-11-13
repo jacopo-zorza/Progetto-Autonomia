@@ -285,3 +285,45 @@ class AuthService:
             "is_active": user.is_active,
             "created_at": _format_datetime(user.created_at),
         }
+
+    @staticmethod
+    def update_user_profile(user_id: int, **updates: str) -> tuple[bool, str, User | None]:
+        """Aggiorna i dati del profilo utente."""
+        user = AuthService.get_user_by_id(user_id)
+        if not user:
+            return False, "Utente non trovato", None
+
+        try:
+            if 'first_name' in updates:
+                valid, cleaned = AuthService._validate_required_field(updates.get('first_name'), "Nome", min_length=2, max_length=50)
+                if not valid:
+                    return False, cleaned, None
+                user.first_name = cleaned
+
+            if 'last_name' in updates:
+                valid, cleaned = AuthService._validate_required_field(updates.get('last_name'), "Cognome", min_length=2, max_length=50)
+                if not valid:
+                    return False, cleaned, None
+                user.last_name = cleaned
+
+            if 'phone' in updates:
+                valid, cleaned = AuthService._validate_phone(updates.get('phone'))
+                if not valid:
+                    return False, cleaned, None
+                user.phone = cleaned
+
+            if 'profile_image' in updates:
+                profile_image = updates.get('profile_image')
+                if profile_image is None or profile_image == "":
+                    user.profile_image = None
+                elif isinstance(profile_image, str):
+                    user.profile_image = profile_image.strip()
+                else:
+                    return False, "Formato immagine non valido", None
+
+            db.session.commit()
+            return True, "Profilo aggiornato", user
+
+        except Exception as exc:  # pragma: no cover - logica di fallback
+            db.session.rollback()
+            return False, f"Errore aggiornamento profilo: {exc}", None

@@ -288,7 +288,8 @@ def find_nearby_items():
             if distance <= radius_km:
                 nearby_items.append({
                     'id': item.id,
-                    'name': item.name,
+                    'title': item.title,
+                    'name': item.title,
                     'price': item.price,
                     'latitude': item.latitude,
                     'longitude': item.longitude,

@@ -34,22 +34,26 @@ class Item(db.Model):
     __tablename__ = 'items'
     
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
     price = db.Column(db.Float, nullable=False)
-    image_url = db.Column(db.String(500), nullable=True)  # Percorso immagine principale
+    category = db.Column(db.String(50), nullable=True)
+    condition = db.Column(db.String(30), nullable=True)
+    location_name = db.Column(db.String(100), nullable=True)
+    image_url = db.Column(db.Text, nullable=True)
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
     seller_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
-    is_sold = db.Column(db.Boolean, default=False, nullable=False)  # Item venduto o meno
+    is_sold = db.Column(db.Boolean, default=False, nullable=False)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, index=True)
     
-    # Relazioni
     transactions = db.relationship('Transaction', backref='item', lazy='dynamic', cascade='all, delete-orphan')
     reviews = db.relationship('Review', backref='item', lazy='dynamic', cascade='all, delete-orphan')
     
     def __repr__(self):
-        return f'<Item {self.name}>'
+        return f'<Item {self.title}>'
 
 class Message(db.Model):
     __tablename__ = 'messages'

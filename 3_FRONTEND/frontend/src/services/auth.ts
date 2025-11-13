@@ -47,6 +47,7 @@ async function createLocalUser(payload: any){
     first_name: payload.first_name,
     last_name: payload.last_name,
     phone: payload.phone,
+    profile_image: payload.profile_image || null,
     walletBalance: 0
   }
   users.unshift(newUser)
@@ -66,20 +67,58 @@ async function saveAuth(data: any){
   try{ window.dispatchEvent(new Event('auth-changed')) }catch(e){}
 }
 
-export function updateUserProfile(updates: Record<string, any>){
+export async function updateUserProfile(updates: Record<string, any>){
+  const normalizedUpdates = { ...updates }
+  if (normalizedUpdates.image !== undefined && normalizedUpdates.profile_image === undefined) {
+    normalizedUpdates.profile_image = normalizedUpdates.image
+  }
   // Legge auth corrente, merge con updates e riscrive
   const raw = localStorage.getItem(AUTH_KEY)
   if(!raw) return null
-  try{
+
+  try {
     const auth = JSON.parse(raw)
-    const merged = { ...(auth.user || {}), ...updates }
+    const token: string | undefined = auth?.access_token
+
+    if (token) {
+      const res = await fetch('/api/auth/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(normalizedUpdates)
+      })
+
+      const body = await res.json().catch(() => ({}))
+
+      if (res.ok && body.success && body.user) {
+        const user = ensureWallet(body.user)
+        auth.user = user
+        localStorage.setItem(AUTH_KEY, JSON.stringify(auth))
+        syncUserRecord(user)
+        try{ window.dispatchEvent(new Event('auth-changed')) }catch(e){}
+        return user
+      }
+
+      throw new Error(body.message || 'Aggiornamento profilo non riuscito')
+    }
+  } catch (err) {
+    console.warn('Aggiornamento profilo sul server fallito, eseguo fallback locale', err)
+  }
+
+  try {
+    const auth = JSON.parse(raw)
+    const merged = { ...(auth.user || {}), ...normalizedUpdates }
     const user = ensureWallet(merged)
     auth.user = user
     localStorage.setItem(AUTH_KEY, JSON.stringify(auth))
     syncUserRecord(user)
     try{ window.dispatchEvent(new Event('auth-changed')) }catch(e){}
     return user
-  }catch(e){ return null }
+  } catch (e) {
+    return null
+  }
 }
 
 export async function register(payload: { username: string; email: string; password: string; first_name?: string; last_name?: string; phone?: string }): Promise<{ ok: boolean; message?: string }>{
@@ -169,6 +208,17 @@ export function adjustWalletBalance(delta: number): number | null {
     try{ window.dispatchEvent(new Event('auth-changed')) }catch(e){}
     return next
   }catch(e){
+    return null
+  }
+}
+
+export function getAccessToken(): string | null {
+  const raw = localStorage.getItem(AUTH_KEY)
+  if (!raw) return null
+  try {
+    const auth = JSON.parse(raw)
+    return typeof auth?.access_token === 'string' ? auth.access_token : null
+  } catch (error) {
     return null
   }
 }

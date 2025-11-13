@@ -8,7 +8,8 @@
 	--pa-accent-2: #1e9b3a;
 }
 
-.pa-card { background:var(--pa-bg); border:1px solid rgba(4,15,15,0.06); border-radius:12px; padding:16px; box-shadow:0 6px 18px rgba(2,40,24,0.04); }
+.pa-card { background:var(--pa-bg); border:1px solid rgba(4,15,15,0.06); border-radius:12px; padding:16px; box-shadow:0 6px 18px rgba(2,40,24,0.04); transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease; }
+.pa-card:hover { box-shadow:0 12px 28px rgba(2,40,24,0.12); transform: translateY(-2px); border-color: rgba(30,155,58,0.18); }
 
 .account-hero { display:flex; gap:1rem; align-items:center; padding:1rem 0; }
 .account-avatar { width:88px; height:88px; border-radius:9999px; background:#f3f4f6; display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--pa-muted); font-size:1.25rem; overflow:hidden }

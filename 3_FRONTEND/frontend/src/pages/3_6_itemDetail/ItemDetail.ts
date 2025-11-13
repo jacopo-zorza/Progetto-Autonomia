@@ -6,35 +6,88 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 
 export default function ItemDetail(): React.ReactElement {
   const { id } = useParams()
-  const item = id ? getItem(id) : undefined
+  const [item, setItem] = React.useState<Item | undefined>(undefined)
+  const [similarItems, setSimilarItems] = React.useState<Item[]>([])
+  const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
   const navigate = useNavigate()
   const user = React.useMemo(() => getUser(), [])
 
-  if (!item) {
-    return React.createElement('div', { className: 'fs-container' }, React.createElement('h2', null, 'Oggetto non trovato'))
+  React.useEffect(() => {
+    if (!id) {
+      setError('Oggetto non trovato')
+      setLoading(false)
+      return
+    }
+
+    let cancelled = false
+
+    async function load() {
+      setLoading(true)
+      setError(null)
+      try {
+        const [itemData, allItems] = await Promise.all([getItem(id), listItems()])
+        if (cancelled) return
+
+        if (!itemData) {
+          setError('Oggetto non trovato')
+          setItem(undefined)
+          return
+        }
+
+        setItem(itemData)
+
+        const similarByCategory = allItems
+          .filter(i => i.id !== itemData.id && i.category && itemData.category && i.category.toLowerCase() === itemData.category.toLowerCase())
+          .slice(0, 4)
+
+        if (similarByCategory.length > 0) {
+          setSimilarItems(similarByCategory)
+        } else {
+          const fallback = allItems.filter(i => i.id !== itemData.id).slice(0, 4)
+          setSimilarItems(fallback)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          const message = err instanceof Error ? err.message : 'Impossibile caricare l\'annuncio'
+          setError(message)
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    load()
+
+    return () => {
+      cancelled = true
+    }
+  }, [id])
+
+  if (loading) {
+    return React.createElement('div', { className: 'fs-container' }, React.createElement('p', null, 'Caricamento annuncio...'))
+  }
+
+  if (error || !item) {
+    return React.createElement('div', { className: 'fs-container' }, React.createElement('h2', null, error || 'Oggetto non trovato'))
   }
 
   const isOwner = isItemOwnedByUser(item, user)
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!item) return
     if (!window.confirm('Vuoi davvero eliminare questo annuncio?')) return
-    const removed = deleteItem(item.id)
-    if (!removed) {
-      window.alert('Si è verificato un errore durante l\'eliminazione.')
-      return
+    try {
+      await deleteItem(item.id)
+      navigate('/items')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Si è verificato un errore durante l\'eliminazione.'
+      window.alert(message)
     }
-    navigate('/items')
   }
 
   // Carica items simili (stessa categoria) oppure gli ultimi 4
-  const all = listItems()
-  const similar: Item[] = all.filter(i => i.id !== item.id && i.category && item.category && i.category.toLowerCase() === item.category.toLowerCase()).slice(0,4)
-  if (similar.length === 0) {
-    // fallback: ultimi 4 diversi
-    const fallback = all.filter(i => i.id !== item.id).slice(0,4)
-    similar.push(...fallback)
-  }
+  const similar = similarItems
 
   return React.createElement(
     'div',

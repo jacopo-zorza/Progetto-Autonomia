@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { isAuthenticated, getUser, logout } from '../../services/auth'
 import ConfirmDialog from '../../components/ConfirmDialog'
@@ -10,8 +10,11 @@ export default function Header(): React.ReactElement {
   const location = useLocation()
 
   const [authState, setAuthState] = useState(isAuthenticated())
-  const [, setUser] = useState(getUser())
+  const [user, setUser] = useState(getUser())
   const [showConfirm, setShowConfirm] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
+  const [avatarBroken, setAvatarBroken] = useState(false)
+  const menuRef = useRef<HTMLDivElement | null>(null)
 
   function requestLogout() { setShowConfirm(true) }
   function cancelLogout() { setShowConfirm(false) }
@@ -21,11 +24,57 @@ export default function Header(): React.ReactElement {
     navigate('/')
   }
 
+  function toggleMenu() { setShowMenu(prev => !prev) }
+  function closeMenu() { setShowMenu(false) }
+
+  function goToAccount() {
+    closeMenu()
+    navigate('/dashboard')
+  }
+
+  function logoutFromMenu() {
+    closeMenu()
+    requestLogout()
+  }
+
   useEffect(() => {
-    function onAuth(){ setAuthState(isAuthenticated()); setUser(getUser()) }
+    function onAuth(){
+      const nextAuth = isAuthenticated()
+      setAuthState(nextAuth)
+      const nextUser = getUser()
+      setUser(nextUser)
+      if (!nextAuth) {
+        setShowMenu(false)
+        setAvatarBroken(false)
+      }
+    }
     window.addEventListener('auth-changed', onAuth)
     return () => window.removeEventListener('auth-changed', onAuth)
   }, [])
+
+  useEffect(() => { setShowMenu(false) }, [location.pathname])
+
+  useEffect(() => { setAvatarBroken(false) }, [user?.id, user?.profile_image])
+
+  useEffect(() => {
+    if (!showMenu) return
+    function handleClickOutside(event: MouseEvent) {
+      if (!menuRef.current) return
+      if (menuRef.current.contains(event.target as Node)) return
+      setShowMenu(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showMenu])
+
+  const displayName = user ? ( [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username || '').trim() : ''
+  const displayInitial = user ? (user.first_name?.[0] || user.username?.[0] || '?').toUpperCase() : ''
+  const haveAvatar = Boolean(user && user.profile_image && !avatarBroken)
+
+  function handleAvatarError(event: React.SyntheticEvent<HTMLImageElement>) {
+    event.currentTarget.style.display = 'none'
+    setAvatarBroken(true)
+  }
 
   const headerEl = React.createElement(
     'header',
@@ -59,8 +108,25 @@ export default function Header(): React.ReactElement {
           React.createElement(React.Fragment, null,
             React.createElement(Link, { to: '/' , className: 'fs-nav-link' }, 'Home'),
             React.createElement(Link, { to: '/items', className: 'fs-nav-link' }, 'Oggetti'),
-            React.createElement(Link, { to: '/dashboard', className: 'fs-nav-link' }, 'Account'),
-            React.createElement('button', { onClick: requestLogout, className: 'fs-nav-cta' }, 'Esci')
+            React.createElement(
+              'div',
+              { className: 'fs-profile-area', ref: menuRef },
+              React.createElement(
+                'button',
+                { type: 'button', className: `fs-profile-trigger${showMenu ? ' open' : ''}`, onClick: toggleMenu },
+                haveAvatar
+                  ? React.createElement('img', { src: user?.profile_image, alt: displayName || 'Profilo', className: 'fs-profile-avatar', onError: handleAvatarError })
+                  : React.createElement('span', { className: 'fs-profile-avatar fs-profile-initial' }, displayInitial),
+                React.createElement('span', { className: 'fs-profile-name' }, displayName),
+                React.createElement('span', { className: 'fs-profile-caret' }, showMenu ? '▲' : '▼')
+              ),
+              showMenu ? React.createElement(
+                'div',
+                { className: 'fs-profile-dropdown' },
+                React.createElement('button', { type: 'button', className: 'fs-profile-option', onClick: goToAccount }, 'Account'),
+                React.createElement('button', { type: 'button', className: 'fs-profile-option logout', onClick: logoutFromMenu }, 'Esci')
+              ) : null
+            )
           )
         )
       )

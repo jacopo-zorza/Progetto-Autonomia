@@ -17,23 +17,23 @@ class ItemsService:
     """Servizio per gestione items"""
     
     @staticmethod
-    def validate_item_data(name: str, price: float, description: str = None) -> Tuple[bool, str]:
+    def validate_item_data(title: str, price: float, description: str = None) -> Tuple[bool, str]:
         """
         Valida i dati di un item
         
         Args:
-            name: Nome dell'oggetto
+            title: Titolo dell'oggetto
             price: Prezzo
             description: Descrizione opzionale
             
         Returns:
             (is_valid, error_message)
         """
-        if not name or not name.strip():
-            return False, "Nome oggetto è obbligatorio"
+        if not title or not title.strip():
+            return False, "Titolo oggetto è obbligatorio"
         
-        if len(name) > 100:
-            return False, "Nome troppo lungo (max 100 caratteri)"
+        if len(title) > 100:
+            return False, "Titolo troppo lungo (max 100 caratteri)"
         
         if price is None:
             return False, "Prezzo è obbligatorio"
@@ -115,8 +115,18 @@ class ItemsService:
         return round(distance, 2)
     
     @staticmethod
-    def create_item(seller_id: int, name: str, price: float, description: str = None,
-                   latitude: float = None, longitude: float = None) -> Tuple[bool, str, Optional[Item]]:
+    def create_item(
+        seller_id: int,
+        title: str,
+        price: float,
+        description: str = None,
+        category: str = None,
+        condition: str = None,
+        location: str = None,
+        image: str = None,
+        latitude: float = None,
+        longitude: float = None
+    ) -> Tuple[bool, str, Optional[Item]]:
         """
         Crea un nuovo item
         
@@ -132,7 +142,7 @@ class ItemsService:
             (success, message, item_object or None)
         """
         # Validazione dati
-        valid, msg = ItemsService.validate_item_data(name, price, description)
+        valid, msg = ItemsService.validate_item_data(title, price, description)
         if not valid:
             return False, msg, None
         
@@ -146,11 +156,14 @@ class ItemsService:
             return False, "Venditore non trovato", None
         
         try:
-            # Crea nuovo item
             new_item = Item(
-                name=name.strip(),
+                title=title.strip(),
                 description=description.strip() if description else None,
                 price=float(price),
+                category=category.strip() if category else None,
+                condition=condition.strip() if condition else None,
+                location_name=location.strip() if location else None,
+                image_url=image.strip() if isinstance(image, str) and image.strip() else None,
                 latitude=float(latitude) if latitude is not None else None,
                 longitude=float(longitude) if longitude is not None else None,
                 seller_id=seller_id
@@ -177,6 +190,42 @@ class ItemsService:
             Item object o None
         """
         return Item.query.get(item_id)
+
+    @staticmethod
+    def serialize_item(item: Item, distance_km: Optional[float] = None) -> dict:
+        """Serializza un oggetto Item in un dizionario pronto per l'API."""
+        seller = item.seller if hasattr(item, 'seller') else None
+        seller_full_name = None
+        if seller is not None:
+            full_name_parts = [seller.first_name, seller.last_name]
+            seller_full_name = " ".join(filter(None, full_name_parts)).strip()
+            if not seller_full_name:
+                seller_full_name = None
+
+        data = {
+            'id': item.id,
+            'title': item.title,
+            'description': item.description,
+            'price': item.price,
+            'category': item.category,
+            'condition': item.condition,
+            'location': item.location_name,
+            'latitude': item.latitude,
+            'longitude': item.longitude,
+            'image': item.image_url,
+            'seller_id': item.seller_id,
+            'seller_username': seller.username if seller else None,
+            'seller_full_name': seller_full_name,
+            'is_sold': item.is_sold,
+            'is_active': item.is_active,
+            'created_at': item.created_at.isoformat() if item.created_at else None,
+            'updated_at': item.updated_at.isoformat() if item.updated_at else None
+        }
+
+        if distance_km is not None:
+            data['distance_km'] = distance_km
+
+        return data
     
     @staticmethod
     def update_item(item_id: int, seller_id: int, **kwargs) -> Tuple[bool, str, Optional[Item]]:
@@ -202,15 +251,15 @@ class ItemsService:
         
         try:
             # Aggiorna campi se forniti
-            if 'name' in kwargs:
+            if 'title' in kwargs:
                 valid, msg = ItemsService.validate_item_data(
-                    kwargs['name'], 
+                    kwargs['title'],
                     kwargs.get('price', item.price),
                     kwargs.get('description', item.description)
                 )
                 if not valid:
                     return False, msg, None
-                item.name = kwargs['name'].strip()
+                item.title = kwargs['title'].strip()
             
             if 'description' in kwargs:
                 desc = kwargs['description']
@@ -221,6 +270,25 @@ class ItemsService:
                 if price < 0:
                     return False, "Prezzo non può essere negativo", None
                 item.price = price
+
+            if 'category' in kwargs:
+                category = kwargs['category']
+                item.category = category.strip() if category else None
+
+            if 'condition' in kwargs:
+                condition = kwargs['condition']
+                item.condition = condition.strip() if condition else None
+
+            if 'location' in kwargs:
+                location = kwargs['location']
+                item.location_name = location.strip() if location else None
+
+            if 'image' in kwargs:
+                image = kwargs['image']
+                if image is None or image == "":
+                    item.image_url = None
+                elif isinstance(image, str):
+                    item.image_url = image.strip()
             
             if 'latitude' in kwargs and 'longitude' in kwargs:
                 valid, msg = ItemsService.validate_coordinates(
@@ -315,7 +383,7 @@ class ItemsService:
         if search:
             search_pattern = f"%{search}%"
             query = query.filter(
-                (Item.name.ilike(search_pattern)) | 
+                (Item.title.ilike(search_pattern)) |
                 (Item.description.ilike(search_pattern))
             )
         
@@ -323,64 +391,38 @@ class ItemsService:
         if order_by == 'price':
             query = query.order_by(Item.price.desc() if order_dir == 'desc' else Item.price.asc())
         elif order_by == 'name':
-            query = query.order_by(Item.name.desc() if order_dir == 'desc' else Item.name.asc())
+            query = query.order_by(Item.title.desc() if order_dir == 'desc' else Item.title.asc())
         else:  # default: created_at
             query = query.order_by(Item.created_at.desc() if order_dir == 'desc' else Item.created_at.asc())
         
         # Paginazione
         pagination = query.paginate(page=page, per_page=per_page, error_out=False)
         items = pagination.items
-        
-        # Se richiesta ricerca geografica, calcola distanze
-        items_with_distance = []
+
+        items_serialized: List[dict] = []
         if latitude is not None and longitude is not None:
             for item in items:
-                item_dict = {
-                    'id': item.id,
-                    'name': item.name,
-                    'description': item.description,
-                    'price': item.price,
-                    'seller_id': item.seller_id,
-                    'seller_username': item.seller.username,
-                    'created_at': item.created_at.isoformat(),
-                    'latitude': item.latitude,
-                    'longitude': item.longitude,
-                    'distance_km': None
-                }
-                
-                # Calcola distanza se item ha coordinate
-                if item.latitude and item.longitude:
-                    distance = ItemsService.calculate_distance(
-                        latitude, longitude,
-                        item.latitude, item.longitude
+                distance_value: Optional[float] = None
+                if item.latitude is not None and item.longitude is not None:
+                    distance_value = ItemsService.calculate_distance(
+                        latitude,
+                        longitude,
+                        item.latitude,
+                        item.longitude
                     )
-                    item_dict['distance_km'] = distance
-                    
-                    # Filtra per raggio se specificato
-                    if radius_km and distance > radius_km:
+                    if radius_km and distance_value > radius_km:
                         continue
-                
-                items_with_distance.append(item_dict)
-            
-            # Ordina per distanza se specificato
+
+                serialized = ItemsService.serialize_item(item, distance_km=distance_value)
+                items_serialized.append(serialized)
+
             if radius_km:
-                items_with_distance.sort(key=lambda x: x['distance_km'] if x['distance_km'] is not None else float('inf'))
+                items_serialized.sort(key=lambda x: x.get('distance_km') if x.get('distance_km') is not None else float('inf'))
         else:
-            # Senza ricerca geografica, formato standard
-            items_with_distance = [{
-                'id': item.id,
-                'name': item.name,
-                'description': item.description,
-                'price': item.price,
-                'seller_id': item.seller_id,
-                'seller_username': item.seller.username,
-                'created_at': item.created_at.isoformat(),
-                'latitude': item.latitude,
-                'longitude': item.longitude
-            } for item in items]
+            items_serialized = [ItemsService.serialize_item(item) for item in items]
         
         return {
-            'items': items_with_distance,
+            'items': items_serialized,
             'pagination': {
                 'page': page,
                 'per_page': per_page,
