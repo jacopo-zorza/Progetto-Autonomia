@@ -44,14 +44,21 @@ def register():
         username = data.get('username', '').strip()
         email = data.get('email', '').strip()
         password = data.get('password', '')
-        # campi opzionali
-        first_name = data.get('first_name')
-        last_name = data.get('last_name')
-        phone = data.get('phone')
+        first_name = data.get('first_name', '')
+        last_name = data.get('last_name', '')
+        phone = data.get('phone', '')
         profile_image = data.get('profile_image')
 
-        # Registra utente (passa anche campi opzionali)
-        success, message, user = AuthService.register_user(username, email, password, first_name, last_name, phone, profile_image)
+        # Registra utente (campi anagrafici obbligatori)
+        success, message, user = AuthService.register_user(
+            username,
+            email,
+            password,
+            first_name,
+            last_name,
+            phone,
+            profile_image
+        )
 
         # Caso di validazione o conflitto (username/email già in uso)
         if not success:
@@ -87,6 +94,9 @@ def register():
                 "id": user.id,
                 "username": user.username,
                 "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "phone": user.phone,
                 "created_at": user.created_at.isoformat()
             },
             "access_token": access_token,

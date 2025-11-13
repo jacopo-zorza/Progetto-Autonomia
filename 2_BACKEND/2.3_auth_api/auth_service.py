@@ -118,7 +118,36 @@ class AuthService:
         return True, ""
     
     @staticmethod
-    def register_user(username: str, email: str, password: str, first_name: str | None = None, last_name: str | None = None, phone: str | None = None, profile_image: str | None = None) -> tuple[bool, str, User | None]:
+    def _validate_required_field(value: str, field_name: str, *, min_length: int = 1, max_length: int | None = None) -> tuple[bool, str]:
+        """Valida campi obbligatori semplici"""
+        if value is None:
+            return False, f"{field_name} è obbligatorio"
+
+        cleaned = value.strip()
+        if len(cleaned) < min_length:
+            return False, f"{field_name} deve contenere almeno {min_length} caratteri"
+        if max_length is not None and len(cleaned) > max_length:
+            return False, f"{field_name} può contenere al massimo {max_length} caratteri"
+        return True, cleaned
+
+    @staticmethod
+    def _validate_phone(phone: str) -> tuple[bool, str]:
+        """Valida il formato del numero di telefono"""
+        if phone is None:
+            return False, "Telefono è obbligatorio"
+
+        cleaned = phone.strip()
+        if len(cleaned) < 5:
+            return False, "Telefono deve contenere almeno 5 caratteri"
+
+        # Consente numeri, spazi, +, -, ()
+        if not re.match(r'^[0-9+\-()\s]+$', cleaned):
+            return False, "Telefono contiene caratteri non validi"
+
+        return True, cleaned
+
+    @staticmethod
+    def register_user(username: str, email: str, password: str, first_name: str, last_name: str, phone: str, profile_image: str | None = None) -> tuple[bool, str, User | None]:
         """
         Registra un nuovo utente
         
@@ -143,6 +172,19 @@ class AuthService:
         if not valid:
             return False, msg, None
         
+        # Valida campi anagrafici obbligatori
+        valid, first_name_or_msg = AuthService._validate_required_field(first_name, "Nome", min_length=2, max_length=50)
+        if not valid:
+            return False, first_name_or_msg, None
+
+        valid, last_name_or_msg = AuthService._validate_required_field(last_name, "Cognome", min_length=2, max_length=50)
+        if not valid:
+            return False, last_name_or_msg, None
+
+        valid, phone_or_msg = AuthService._validate_phone(phone)
+        if not valid:
+            return False, phone_or_msg, None
+
         # Controlla se username già esiste
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
@@ -162,9 +204,9 @@ class AuthService:
                 username=username,
                 email=email,
                 password_hash=password_hash,
-                first_name=first_name,
-                last_name=last_name,
-                phone=phone,
+                first_name=first_name_or_msg,
+                last_name=last_name_or_msg,
+                phone=phone_or_msg,
                 profile_image=profile_image
             )
             
