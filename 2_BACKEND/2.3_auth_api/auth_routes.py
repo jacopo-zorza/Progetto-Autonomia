@@ -90,15 +90,7 @@ def register():
         return jsonify({
             "success": True,
             "message": message,
-            "user": {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "phone": user.phone,
-                "created_at": user.created_at.isoformat()
-            },
+            "user": AuthService.serialize_user(user),
             "access_token": access_token,
             "refresh_token": refresh_token
         }), 201
@@ -167,12 +159,7 @@ def login():
         return jsonify({
             "success": True,
             "message": message,
-            "user": {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email,
-                "created_at": user.created_at.isoformat()
-            },
+            "user": AuthService.serialize_user(user),
             "access_token": access_token,
             "refresh_token": refresh_token
         }), 200
@@ -214,12 +201,7 @@ def get_current_user():
         
         return jsonify({
             "success": True,
-            "user": {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email,
-                "created_at": user.created_at.isoformat()
-            }
+            "user": AuthService.serialize_user(user)
         }), 200
         
     except Exception as e:

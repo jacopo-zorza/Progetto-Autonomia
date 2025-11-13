@@ -13,6 +13,13 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '2.2_models'))
 from models import db, User
 
 
+def _format_datetime(value: datetime | None) -> str | None:
+    """Restituisce datetime in formato ISO 8601."""
+    if value is None:
+        return None
+    return value.isoformat()
+
+
 class AuthService:
     """Servizio per gestione autenticazione utenti"""
     
@@ -260,3 +267,21 @@ class AuthService:
             User object o None
         """
         return User.query.get(user_id)
+
+    @staticmethod
+    def serialize_user(user: User | None) -> dict[str, str | int | bool | None]:
+        """Serializza un oggetto User in un dizionario pronto per l'API."""
+        if user is None:
+            return {}
+
+        return {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "phone": user.phone,
+            "profile_image": user.profile_image,
+            "is_active": user.is_active,
+            "created_at": _format_datetime(user.created_at),
+        }
