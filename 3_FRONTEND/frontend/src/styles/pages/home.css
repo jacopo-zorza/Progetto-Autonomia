@@ -115,7 +115,7 @@
   gap:0.65rem;
 }
 .fs-location-label { font-size:0.85rem; font-weight:600; color:#0f172a; }
-.fs-location-input { width:100%; padding:0.55rem 0.75rem; border-radius:8px; border:1px solid #d1d5db; outline:none; }
+.fs-location-input { width:100%; padding:0.55rem 0.75rem; border-radius:8px; border:1px solid #d1d5db; outline:none; box-sizing:border-box; }
 .fs-location-input:focus { border-color:#0f766e; box-shadow:0 0 0 3px rgba(15,118,110,0.14); }
 .fs-location-actions { display:flex; justify-content:space-between; gap:0.5rem; }
 .fs-location-clear,
@@ -131,7 +131,7 @@
 .fs-location-clear:hover { background:#e2e8f0; }
 .fs-location-apply { background:#0f766e; color:#fff; }
 .fs-location-apply:hover { background:#0d5f59; }
-.fs-search-input { flex:1; padding:0.75rem 1rem; border-radius:9999px; border:1px solid #e5e7eb; outline:none; }
+.fs-search-input { flex:1; padding:0.75rem 1rem; border-radius:9999px; border:1px solid #e5e7eb; outline:none; box-sizing:border-box; }
 .fs-search-btn { background:#111827; color:#fff; padding:0.6rem 1rem; border-radius:9999px; border:none; cursor:pointer; }
 
 .fs-cats-wrap { border-top:1px solid #eef2f6; border-bottom:1px solid #eef2f6; background:#fff; }
