@@ -294,6 +294,40 @@ class AuthService:
             return False, "Utente non trovato", None
 
         try:
+            if 'username' in updates:
+                new_username = updates.get('username')
+                if new_username is None:
+                    return False, "Username è obbligatorio", None
+                trimmed_username = new_username.strip()
+                valid_username, username_msg = AuthService.validate_username(trimmed_username)
+                if not valid_username:
+                    return False, username_msg, None
+
+                username_conflict = User.query.filter(
+                    (User.username == trimmed_username) & (User.id != user_id)
+                ).first()
+                if username_conflict:
+                    return False, "Username già in uso", None
+
+                user.username = trimmed_username
+
+            if 'email' in updates:
+                new_email = updates.get('email')
+                if new_email is None:
+                    return False, "Email è obbligatoria", None
+                trimmed_email = new_email.strip()
+                valid_email, email_msg = AuthService.validate_email(trimmed_email)
+                if not valid_email:
+                    return False, email_msg, None
+
+                email_conflict = User.query.filter(
+                    (User.email == trimmed_email) & (User.id != user_id)
+                ).first()
+                if email_conflict:
+                    return False, "Email già registrata", None
+
+                user.email = trimmed_email
+
             if 'first_name' in updates:
                 valid, cleaned = AuthService._validate_required_field(updates.get('first_name'), "Nome", min_length=2, max_length=50)
                 if not valid:

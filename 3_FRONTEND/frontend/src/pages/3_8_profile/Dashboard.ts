@@ -5,6 +5,14 @@ import { useNavigate, Link } from 'react-router-dom'
 import { listItems, Item } from '../../services/items'
 import ConfirmDialog from '../../components/ConfirmDialog'
 
+type PersonalForm = {
+  username: string
+  email: string
+  first_name: string
+  last_name: string
+  phone: string
+}
+
 export default function Dashboard(): React.ReactElement {
   const navigate = useNavigate()
 
@@ -14,6 +22,16 @@ export default function Dashboard(): React.ReactElement {
   const [myItems, setMyItems] = useState<Item[]>([])
   const [loadingItems, setLoadingItems] = useState(true)
   const [itemsError, setItemsError] = useState<string | null>(null)
+  const [showPersonalEdit, setShowPersonalEdit] = useState(false)
+  const [personalForm, setPersonalForm] = useState<PersonalForm>(() => ({
+    username: resolveUsernameValue(curUser),
+    email: curUser?.email || '',
+    first_name: curUser?.first_name || '',
+    last_name: curUser?.last_name || '',
+    phone: curUser?.phone || ''
+  }))
+  const [personalError, setPersonalError] = useState<string | null>(null)
+  const [personalSaving, setPersonalSaving] = useState(false)
 
   function requestLogout(){ setShowConfirm(true) }
   function cancelLogout(){ setShowConfirm(false) }
@@ -29,6 +47,17 @@ export default function Dashboard(): React.ReactElement {
     window.addEventListener('auth-changed', onAuth)
     return () => window.removeEventListener('auth-changed', onAuth)
   }, [])
+
+  useEffect(() => {
+    if (showPersonalEdit) return
+    setPersonalForm({
+      username: resolveUsernameValue(curUser),
+      email: curUser?.email || '',
+      first_name: curUser?.first_name || '',
+      last_name: curUser?.last_name || '',
+      phone: curUser?.phone || ''
+    })
+  }, [curUser, showPersonalEdit])
 
   useEffect(() => {
     let cancelled = false
@@ -80,6 +109,16 @@ export default function Dashboard(): React.ReactElement {
     return 'U'
   }
 
+  function resolveUsernameValue(userData: any): string {
+    if (userData && typeof userData.username === 'string' && userData.username.trim().length > 0) {
+      return userData.username
+    }
+    if (userData && typeof userData.user === 'string' && userData.user.trim().length > 0) {
+      return userData.user
+    }
+    return ''
+  }
+
   function onFile(e: React.ChangeEvent<HTMLInputElement>){
     const f = e.target.files && e.target.files[0]
     if(!f) return
@@ -100,6 +139,72 @@ export default function Dashboard(): React.ReactElement {
       }
     }
     reader.readAsDataURL(f)
+  }
+
+  function openPersonalEdit(){
+    setPersonalError(null)
+    setPersonalForm({
+      username: resolveUsernameValue(curUser),
+      email: curUser?.email || '',
+      first_name: curUser?.first_name || '',
+      last_name: curUser?.last_name || '',
+      phone: curUser?.phone || ''
+    })
+    setShowPersonalEdit(true)
+  }
+
+  function closePersonalEdit(){
+    if (personalSaving) return
+    setShowPersonalEdit(false)
+    setPersonalError(null)
+  }
+
+  function onPersonalField(field: keyof PersonalForm){
+    return function handleChange(event: React.ChangeEvent<HTMLInputElement>){
+      const value = event.target.value
+      setPersonalForm(prev => ({ ...prev, [field]: value }))
+    }
+  }
+
+  async function onPersonalSubmit(event: React.FormEvent<HTMLFormElement>){
+    event.preventDefault()
+    if (personalSaving) return
+
+    const payload = {
+      username: personalForm.username.trim(),
+      email: personalForm.email.trim(),
+      first_name: personalForm.first_name.trim(),
+      last_name: personalForm.last_name.trim(),
+      phone: personalForm.phone.trim()
+    }
+
+    if (!payload.username || !payload.email || !payload.first_name || !payload.last_name || !payload.phone) {
+      setPersonalError('Compila tutti i campi per continuare.')
+      return
+    }
+
+    if (payload.phone.length < 5) {
+      setPersonalError('Inserisci un numero di telefono valido.')
+      return
+    }
+
+    setPersonalSaving(true)
+    setPersonalError(null)
+
+    try {
+      const updated = await updateUserProfile(payload)
+      if (updated) {
+        setCurUser(updated)
+      } else {
+        setCurUser(getUser())
+      }
+      setShowPersonalEdit(false)
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Non è stato possibile aggiornare i dati personali.'
+      setPersonalError(message)
+    } finally {
+      setPersonalSaving(false)
+    }
   }
 
   const [activeTab, setActiveTab] = useState<'items'|'sales'>('items')
@@ -128,7 +233,16 @@ export default function Dashboard(): React.ReactElement {
         )),
 
       React.createElement('div', { className: 'pa-card profile-data-card' },
-        React.createElement('h3', { className: 'pa-heading' }, 'Dati personali'),
+        React.createElement('div', { className: 'profile-data-header' },
+          React.createElement('h3', { className: 'pa-heading' }, 'Dati personali'),
+          React.createElement('button', {
+            type: 'button',
+            className: 'profile-edit-trigger',
+            onClick: openPersonalEdit,
+            title: 'Modifica dati personali',
+            'aria-label': 'Modifica dati personali'
+          }, React.createElement('span', { 'aria-hidden': 'true' }, '✎'))
+        ),
         React.createElement('table', { className: 'profile-table' },
           React.createElement('tbody', null,
             React.createElement('tr', null, React.createElement('td', null, 'Username'), React.createElement('td', null, curUser?.username || curUser?.user || '-')),
@@ -196,5 +310,113 @@ export default function Dashboard(): React.ReactElement {
     onCancel: cancelLogout
   })
 
-  return React.createElement(React.Fragment, null, dashboardEl, confirmEl)
+  const personalEditModal = !showPersonalEdit ? null : React.createElement('div', {
+    className: 'fs-modal-overlay profile-edit-overlay',
+    role: 'dialog',
+    'aria-modal': 'true',
+    'aria-labelledby': 'profile-edit-title',
+    'aria-describedby': 'profile-edit-subtitle',
+    onClick: closePersonalEdit
+  },
+    React.createElement('div', {
+      className: 'profile-edit-modal',
+      onClick: function stop(event: React.MouseEvent<HTMLDivElement>){ event.stopPropagation() }
+    },
+      React.createElement('button', {
+        type: 'button',
+        className: 'profile-edit-close',
+        onClick: closePersonalEdit,
+        title: 'Chiudi editor profilo',
+        'aria-label': 'Chiudi editor profilo',
+        disabled: personalSaving
+      }, 'X'),
+      React.createElement('div', { className: 'profile-edit-header' },
+        React.createElement('div', { className: 'profile-edit-icon' }, '✎'),
+        React.createElement('div', { className: 'profile-edit-heading' },
+          React.createElement('h3', { className: 'profile-edit-title', id: 'profile-edit-title' }, 'Modifica dati personali'),
+          React.createElement('p', { className: 'profile-edit-subtitle', id: 'profile-edit-subtitle' }, 'Aggiorna le informazioni del tuo profilo per mantenerle sempre accurate.')
+        )
+      ),
+      personalError ? React.createElement('div', { className: 'profile-edit-error' }, personalError) : null,
+      React.createElement('form', { className: 'profile-edit-form', onSubmit: onPersonalSubmit },
+        React.createElement('div', { className: 'profile-edit-grid' },
+          React.createElement('label', { className: 'profile-edit-field' },
+            React.createElement('span', { className: 'profile-edit-label' }, 'Username'),
+            React.createElement('input', {
+              type: 'text',
+              className: 'profile-edit-input',
+              value: personalForm.username,
+              onChange: onPersonalField('username'),
+              autoComplete: 'username',
+              required: true,
+              disabled: personalSaving
+            })
+          ),
+          React.createElement('label', { className: 'profile-edit-field' },
+            React.createElement('span', { className: 'profile-edit-label' }, 'Email'),
+            React.createElement('input', {
+              type: 'email',
+              className: 'profile-edit-input',
+              value: personalForm.email,
+              onChange: onPersonalField('email'),
+              autoComplete: 'email',
+              required: true,
+              disabled: personalSaving
+            })
+          ),
+          React.createElement('label', { className: 'profile-edit-field' },
+            React.createElement('span', { className: 'profile-edit-label' }, 'Nome'),
+            React.createElement('input', {
+              type: 'text',
+              className: 'profile-edit-input',
+              value: personalForm.first_name,
+              onChange: onPersonalField('first_name'),
+              autoComplete: 'given-name',
+              required: true,
+              disabled: personalSaving
+            })
+          ),
+          React.createElement('label', { className: 'profile-edit-field' },
+            React.createElement('span', { className: 'profile-edit-label' }, 'Cognome'),
+            React.createElement('input', {
+              type: 'text',
+              className: 'profile-edit-input',
+              value: personalForm.last_name,
+              onChange: onPersonalField('last_name'),
+              autoComplete: 'family-name',
+              required: true,
+              disabled: personalSaving
+            })
+          ),
+          React.createElement('label', { className: 'profile-edit-field profile-edit-field--full' },
+            React.createElement('span', { className: 'profile-edit-label' }, 'Telefono'),
+            React.createElement('input', {
+              type: 'tel',
+              className: 'profile-edit-input',
+              value: personalForm.phone,
+              onChange: onPersonalField('phone'),
+              autoComplete: 'tel',
+              required: true,
+              disabled: personalSaving
+            })
+          )
+        ),
+        React.createElement('div', { className: 'profile-edit-actions' },
+          React.createElement('button', {
+            type: 'button',
+            className: 'profile-edit-btn cancel',
+            onClick: closePersonalEdit,
+            disabled: personalSaving
+          }, 'Annulla'),
+          React.createElement('button', {
+            type: 'submit',
+            className: 'profile-edit-btn save',
+            disabled: personalSaving
+          }, personalSaving ? 'Salvataggio...' : 'Salva modifiche')
+        )
+      )
+    )
+  )
+
+  return React.createElement(React.Fragment, null, dashboardEl, confirmEl, personalEditModal)
 }

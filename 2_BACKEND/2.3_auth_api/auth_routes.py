@@ -248,7 +248,7 @@ def update_profile():
     """Aggiorna i dati del profilo dell'utente autenticato."""
     try:
         data = request.get_json() or {}
-        allowed_fields = {"first_name", "last_name", "phone", "profile_image"}
+        allowed_fields = {"username", "email", "first_name", "last_name", "phone", "profile_image"}
         updates = {key: value for key, value in data.items() if key in allowed_fields}
 
         if not updates:
