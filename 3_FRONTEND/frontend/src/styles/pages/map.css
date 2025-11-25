@@ -1,11 +1,26 @@
-.fs-map-page { display:flex; flex-direction:column; height: calc(100vh - 64px); }
-.fs-map-toolbar { padding: 10px 16px; background: #fff; border-bottom: 1px solid #e5e7eb; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap }
-.fs-map-status { font-size: 14px; color: #1f2937; flex:1 }
-.fs-map-radius-form { display:flex; gap:8px; align-items:center; flex-wrap:wrap }
-.fs-map-radius-label { font-size:13px; color:#475569; font-weight:500 }
-.fs-map-radius-input { width:90px; padding:4px 8px; border:1px solid #cbd5f5; border-radius:6px; font-size:14px }
-.fs-map-radius-input:focus { outline:2px solid #bfdbfe; border-color:#60a5fa }
-.fs-map-radius-apply { background:#1d4ed8; color:#fff; border:none; border-radius:6px; padding:6px 14px; font-size:14px; cursor:pointer; transition:background 0.2s ease }
-.fs-map-radius-apply:hover { background:#1e40af }
-.fs-map-canvas { flex:1; min-height:400px }
+.fs-map-shell { min-height: calc(100vh - 64px); background: linear-gradient(145deg, #f2fbf4, #ffffff); padding: 24px; display:flex; justify-content:center; align-items:flex-start }
+.fs-map-card { width: 100%; max-width: 1100px; background:#ffffff; border:1px solid rgba(4,15,15,0.08); border-radius:18px; box-shadow:0 25px 60px rgba(4,15,15,0.08); overflow:hidden; display:flex; flex-direction:column }
+.fs-map-toolbar { padding: 16px 20px; background: linear-gradient(135deg, rgba(3,21,21,0.04), rgba(43,168,74,0.08)); border-bottom:1px solid rgba(4,15,15,0.06); display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap }
+.fs-map-status { font-size: 0.95rem; color: #0f172a; flex:1; font-weight:500 }
+.fs-map-controls { display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:flex-end }
+.fs-map-radius-form { display:flex; gap:8px; align-items:center; flex-wrap:wrap; background:#fff; padding:6px 12px; border:1px solid rgba(15,23,42,0.08); border-radius:999px; box-shadow:0 6px 14px rgba(15,23,42,0.05) }
+.fs-map-radius-label { font-size:13px; color:#475569; font-weight:600 }
+.fs-map-radius-input { width:96px; padding:4px 8px; border:1px solid #d1fae5; border-radius:8px; font-size:14px; font-weight:600; color:#065f46; text-align:center }
+.fs-map-radius-input:focus { outline:2px solid rgba(43,168,74,0.35); border-color:rgba(43,168,74,0.65) }
+.fs-map-radius-apply { background:var(--pa-green); color:#fff; border:none; border-radius:8px; padding:6px 14px; font-size:14px; font-weight:600; cursor:pointer; transition:transform 0.15s ease, box-shadow 0.15s ease }
+.fs-map-radius-apply:hover { transform: translateY(-1px); box-shadow:0 8px 18px rgba(43,168,74,0.25) }
+.fs-map-center-btn { background:linear-gradient(135deg,#024823,#2ba84a); color:#fff; border:none; border-radius:999px; padding:8px 18px; font-weight:600; font-size:14px; cursor:pointer; box-shadow:0 10px 24px rgba(2,40,35,0.25); transition:transform 0.15s ease, box-shadow 0.15s ease }
+.fs-map-center-btn:hover { transform: translateY(-2px); box-shadow:0 14px 30px rgba(2,40,35,0.3) }
+.fs-map-canvas-wrap { width:100%; height: 600px; background:#eef7ef; }
+.fs-map-canvas { width:100%; height:100%; min-height:400px }
 #map { width:100%; height:100%; }
+
+@media (max-width:768px){
+	.fs-map-shell { padding:16px }
+	.fs-map-card { border-radius:14px }
+	.fs-map-toolbar { padding:14px }
+	.fs-map-controls { width:100%; justify-content:flex-start }
+	.fs-map-center-btn { width:100%; text-align:center }
+	.fs-map-radius-form { width:100%; justify-content:space-between }
+	.fs-map-radius-input { flex:1 }
+}

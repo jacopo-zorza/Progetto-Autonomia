@@ -4,7 +4,7 @@ API endpoints per servizi di geolocalizzazione avanzati
 """
 
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+# Nota: per gli endpoint geolocation consentiamo accesso pubblico
 import sys
 import os
 
@@ -226,7 +226,6 @@ def calculate_distance():
 
 
 @geolocation_bp.route('/nearby', methods=['GET'])
-@jwt_required()
 def find_nearby_items():
     """
     Trova items nelle vicinanze di coordinate specifiche

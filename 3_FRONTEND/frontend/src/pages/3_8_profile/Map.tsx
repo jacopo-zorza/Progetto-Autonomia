@@ -237,25 +237,37 @@ export default function MapPage(): React.ReactElement {
     if (clamped !== radiusKm) setRadiusKm(clamped)
   }
 
+  function centerOnUser() {
+    if (!lfMapRef.current || !lastCoordsRef.current) return
+    lfMapRef.current.setView([lastCoordsRef.current.lat, lastCoordsRef.current.lon], lfMapRef.current.getZoom(), { animate: true })
+  }
+
   return (
-    React.createElement('div', { className: 'fs-map-page' },
-      React.createElement('div', { className: 'fs-map-toolbar' },
-        React.createElement('div', { className: 'fs-map-status' }, status),
-        React.createElement('form', { className: 'fs-map-radius-form', onSubmit: applyRadiusChange },
-          React.createElement('label', { className: 'fs-map-radius-label' }, 'Raggio (1-500 km)'),
-          React.createElement('input', {
-            type: 'number',
-            min: 1,
-            max: 500,
-            step: 1,
-            value: pendingRadius,
-            onChange: e => setPendingRadius(e.target.value),
-            className: 'fs-map-radius-input'
-          }),
-          React.createElement('button', { type: 'submit', className: 'fs-map-radius-apply' }, 'Aggiorna')
+    React.createElement('div', { className: 'fs-map-shell' },
+      React.createElement('div', { className: 'fs-map-card' },
+        React.createElement('div', { className: 'fs-map-toolbar' },
+          React.createElement('div', { className: 'fs-map-status' }, status),
+          React.createElement('div', { className: 'fs-map-controls' },
+            React.createElement('form', { className: 'fs-map-radius-form', onSubmit: applyRadiusChange },
+              React.createElement('label', { className: 'fs-map-radius-label' }, 'Raggio (km)'),
+              React.createElement('input', {
+                type: 'number',
+                min: 1,
+                max: 500,
+                step: 1,
+                value: pendingRadius,
+                onChange: e => setPendingRadius(e.target.value),
+                className: 'fs-map-radius-input'
+              }),
+              React.createElement('button', { type: 'submit', className: 'fs-map-radius-apply' }, 'Aggiorna')
+            ),
+            React.createElement('button', { type: 'button', className: 'fs-map-center-btn', onClick: centerOnUser }, 'Centra posizione')
+          )
+        ),
+        React.createElement('div', { className: 'fs-map-canvas-wrap' },
+          React.createElement('div', { id: 'map', ref: mapRef, className: 'fs-map-canvas' })
         )
-      ),
-      React.createElement('div', { id: 'map', ref: mapRef, className: 'fs-map-canvas' })
+      )
     )
   )
 }
