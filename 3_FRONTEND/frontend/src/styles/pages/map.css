@@ -1,0 +1,11 @@
+.fs-map-page { display:flex; flex-direction:column; height: calc(100vh - 64px); }
+.fs-map-toolbar { padding: 10px 16px; background: #fff; border-bottom: 1px solid #e5e7eb; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap }
+.fs-map-status { font-size: 14px; color: #1f2937; flex:1 }
+.fs-map-radius-form { display:flex; gap:8px; align-items:center; flex-wrap:wrap }
+.fs-map-radius-label { font-size:13px; color:#475569; font-weight:500 }
+.fs-map-radius-input { width:90px; padding:4px 8px; border:1px solid #cbd5f5; border-radius:6px; font-size:14px }
+.fs-map-radius-input:focus { outline:2px solid #bfdbfe; border-color:#60a5fa }
+.fs-map-radius-apply { background:#1d4ed8; color:#fff; border:none; border-radius:6px; padding:6px 14px; font-size:14px; cursor:pointer; transition:background 0.2s ease }
+.fs-map-radius-apply:hover { background:#1e40af }
+.fs-map-canvas { flex:1; min-height:400px }
+#map { width:100%; height:100%; }

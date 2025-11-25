@@ -245,7 +245,7 @@ def find_nearby_items():
     try:
         lat = request.args.get('lat')
         lon = request.args.get('lon')
-        radius = request.args.get('radius', '10')
+        radius = request.args.get('radius', '50')
         
         if not lat or not lon:
             return jsonify({
@@ -257,7 +257,8 @@ def find_nearby_items():
             latitude = float(lat)
             longitude = float(lon)
             radius_km = float(radius)
-            radius_km = min(max(1, radius_km), 100)  # Tra 1 e 100 km
+            # Aumentiamo il limite massimo a 500 km per coprire distanze maggiori (es. Milano -> Rovereto ~150 km)
+            radius_km = min(max(1, radius_km), 500)  # Tra 1 e 500 km
         except ValueError:
             return jsonify({
                 "success": False,

@@ -1,4 +1,4 @@
-#!/workspaces/Progetto-Autonomia/2_BACKEND/2.1_flask_setup/.venv/bin/python3
+#!/workspaces/Progetto-Autonomia/2_BACKEND/2.1_flask_setup/.venv/bin/python
 import sys
 from charset_normalizer.cli import cli_detect
 if __name__ == '__main__':

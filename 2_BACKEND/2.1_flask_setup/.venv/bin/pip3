@@ -1,4 +1,4 @@
-#!/workspaces/Progetto-Autonomia/2_BACKEND/2.1_flask_setup/.venv/bin/python3
+#!/workspaces/Progetto-Autonomia/2_BACKEND/2.1_flask_setup/.venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys

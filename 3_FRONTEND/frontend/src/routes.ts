@@ -14,6 +14,7 @@ import CreateItem from './pages/3_4_createItem/CreateItem'
 import EditItem from './pages/3_4_createItem/EditItem'
 import Chat from './pages/3_7_chat/Chat'
 import Profile from './pages/3_8_profile/Profile'
+import Map from './pages/3_8_profile/Map'
 import NotFound from './pages/3_2_home/NotFound'
 import PrivateRoute from './components/PrivateRoute'
 import Checkout from './pages/3_9_payment/Checkout'
@@ -44,6 +45,7 @@ export default function Router(): React.ReactElement {
   React.createElement(Route, { path: 'dashboard', element: React.createElement(PrivateRoute, null, React.createElement(Dashboard, null)) }),
   React.createElement(Route, { path: 'chat', element: React.createElement(PrivateRoute, null, React.createElement(Chat, null)) }),
   React.createElement(Route, { path: 'profile', element: React.createElement(PrivateRoute, null, React.createElement(Profile, null)) }),
+  React.createElement(Route, { path: 'map', element: React.createElement(PrivateRoute, null, React.createElement(Map, null)) }),
   React.createElement(Route, { path: 'support', element: React.createElement(Support, null) }),
   React.createElement(Route, { path: 'support/assistant', element: React.createElement(VirtualAssistant, null) }),
   React.createElement(Route, { path: '*', element: React.createElement(NotFound, null) })

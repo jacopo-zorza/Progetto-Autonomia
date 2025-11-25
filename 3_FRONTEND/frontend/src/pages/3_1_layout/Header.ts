@@ -120,10 +120,11 @@ export default function Header(): React.ReactElement {
                 React.createElement('span', { className: 'fs-profile-name' }, displayName),
                 React.createElement('span', { className: 'fs-profile-caret' }, showMenu ? '▲' : '▼')
               ),
-              showMenu ? React.createElement(
+                showMenu ? React.createElement(
                 'div',
                 { className: 'fs-profile-dropdown' },
                 React.createElement('button', { type: 'button', className: 'fs-profile-option', onClick: goToAccount }, 'Account'),
+                React.createElement('button', { type: 'button', className: 'fs-profile-option', onClick: () => { closeMenu(); navigate('/map') } }, 'Mappa'),
                 React.createElement('button', { type: 'button', className: 'fs-profile-option logout', onClick: logoutFromMenu }, 'Esci')
               ) : null
             )
