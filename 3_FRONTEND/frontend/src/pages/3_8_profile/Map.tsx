@@ -1,8 +1,28 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { getAccessToken } from '../../services/auth'
 import '../../styles/pages/map.css'
 
 const DEFAULT_RADIUS_KM = 20
+const HISTORY_KEY = 'pa_map_history'
+const HISTORY_LIMIT = 5
+type SellerInfo = {
+  seller_id?: number
+  latitude?: number
+  longitude?: number
+  name?: string
+  distance_km?: number
+  minPrice?: number
+  featuredItem?: string
+  updatedAt?: string
+}
+
+type HistoryEntry = {
+  lat: number
+  lon: number
+  radius: number
+  timestamp: string
+  label?: string
+}
 
 // Simple Leaflet loader using CDN to avoid changing package.json
 function loadLeaflet(): Promise<any> {
@@ -52,6 +72,11 @@ export default function MapPage(): React.ReactElement {
   const [status, setStatus] = useState<string>('Caricamento mappa...')
   const [radiusKm, setRadiusKm] = useState<number>(DEFAULT_RADIUS_KM)
   const [pendingRadius, setPendingRadius] = useState<string>(String(DEFAULT_RADIUS_KM))
+  const [summary, setSummary] = useState<{ sellers: number; items: number; source: 'api' | 'local' | 'none'; lastUpdate?: string }>({ sellers: 0, items: 0, source: 'none' })
+  const [sellerList, setSellerList] = useState<SellerInfo[]>([])
+  const [priceFilter, setPriceFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all')
+  const [recentOnly, setRecentOnly] = useState<boolean>(false)
+  const [history, setHistory] = useState<HistoryEntry[]>([])
   const nearbyMarkersRef = useRef<Record<string, any>>({})
 
   useEffect(() => {
@@ -145,6 +170,16 @@ export default function MapPage(): React.ReactElement {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(HISTORY_KEY)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed)) setHistory(parsed.slice(0, HISTORY_LIMIT))
+      }
+    } catch {}
+  }, [])
+
   async function fetchNearbyAndRender(lat: number, lon: number, radius: number) {
     // Chiama /api/geo/nearby per ottenere items nei dintorni
     try {
@@ -154,12 +189,12 @@ export default function MapPage(): React.ReactElement {
       if (!res.ok) {
         // fallback: usa utenti locali salvati nello storage
         setStatus('Impossibile ottenere dati dal server, uso dati locali')
-        renderLocalUsers()
+        await renderLocalUsers(lat, lon, radius)
         return
       }
       const body = await res.json()
       if (!body.success || !Array.isArray(body.items)) {
-        renderLocalUsers()
+        await renderLocalUsers(lat, lon, radius)
         return
       }
 
@@ -167,10 +202,27 @@ export default function MapPage(): React.ReactElement {
       const L = (window as any).L
 
       // raggruppa per seller_id e prendi la prima posizione trovata
-      const sellers: Record<string, { latitude: number; longitude: number; seller_id: number; name?: string }>= {}
+      const sellers: Record<string, SellerInfo> = {}
       items.forEach(it => {
         const key = String(it.seller_id)
-        if (!sellers[key]) sellers[key] = { latitude: it.latitude, longitude: it.longitude, seller_id: it.seller_id, name: it.name || it.title }
+        if (!sellers[key]) {
+          sellers[key] = {
+            latitude: it.latitude,
+            longitude: it.longitude,
+            seller_id: it.seller_id,
+            name: it.name || it.title,
+            distance_km: it.distance_km,
+            minPrice: it.price,
+            featuredItem: it.title,
+            updatedAt: it.created_at
+          }
+        } else {
+          const record = sellers[key]
+          if (typeof it.distance_km === 'number' && (record.distance_km == null || it.distance_km < record.distance_km)) record.distance_km = it.distance_km
+          if (typeof it.price === 'number' && (record.minPrice == null || it.price < record.minPrice)) record.minPrice = it.price
+          if (!record.featuredItem) record.featuredItem = it.title
+          if (it.created_at && (!record.updatedAt || new Date(it.created_at) > new Date(record.updatedAt))) record.updatedAt = it.created_at
+        }
       })
 
       // rimuovi markers non più presenti
@@ -193,19 +245,24 @@ export default function MapPage(): React.ReactElement {
         }
       })
 
-      setStatus(`Raggio ${radius} km · Venditori trovati: ${Object.keys(sellers).length}`)
+      const sellerArray = Object.values(sellers)
+      setStatus(`Raggio ${radius} km · Venditori trovati: ${sellerArray.length}`)
+      setSummary({ sellers: sellerArray.length, items: items.length, source: 'api', lastUpdate: new Date().toISOString() })
+      setSellerList(sellerArray)
+      await recordHistory(lat, lon, radius)
     } catch (e: any) {
       setStatus('Errore fetching nearby: ' + (e?.message || e))
-      renderLocalUsers()
+      await renderLocalUsers(lat, lon, radius)
     }
   }
 
-  function renderLocalUsers() {
+  async function renderLocalUsers(lat?: number, lon?: number, radius?: number) {
     try {
       const raw = localStorage.getItem('pa_users')
       if (!raw) return
       const users = JSON.parse(raw)
       const L = (window as any).L
+      const sellersData: SellerInfo[] = []
       users.forEach((u: any) => {
         if (!u.latitude || !u.longitude) return
         const key = String(u.id)
@@ -213,7 +270,11 @@ export default function MapPage(): React.ReactElement {
         const marker = L.marker([u.latitude, u.longitude]).addTo(lfMapRef.current)
         marker.bindPopup(`<strong>${escapeHtml(u.first_name || u.username || 'Utente')}</strong>`) 
         nearbyMarkersRef.current[key] = marker
+        sellersData.push({ seller_id: u.id, latitude: u.latitude, longitude: u.longitude, name: u.first_name || u.username })
       })
+      setSummary({ sellers: sellersData.length, items: 0, source: 'local', lastUpdate: new Date().toISOString() })
+      setSellerList(sellersData)
+      if (typeof lat === 'number' && typeof lon === 'number' && typeof radius === 'number') await recordHistory(lat, lon, radius)
     } catch {}
   }
 
@@ -242,6 +303,60 @@ export default function MapPage(): React.ReactElement {
     lfMapRef.current.setView([lastCoordsRef.current.lat, lastCoordsRef.current.lon], lfMapRef.current.getZoom(), { animate: true })
   }
 
+  function focusOnSeller(lat?: number, lon?: number) {
+    if (!lfMapRef.current || typeof lat !== 'number' || typeof lon !== 'number') return
+    lfMapRef.current.setView([lat, lon], Math.max(lfMapRef.current.getZoom(), 13), { animate: true })
+  }
+
+  function openSellerProfile(id?: number) {
+    if (!id) return
+    window.open(`/profile?seller=${id}`, '_blank', 'noopener')
+  }
+
+  function clearHistoryState() {
+    setHistory([])
+    try { localStorage.removeItem(HISTORY_KEY) } catch {}
+  }
+
+  async function recordHistory(lat: number, lon: number, radius: number) {
+    const roundedLat = Number(lat.toFixed(5))
+    const roundedLon = Number(lon.toFixed(5))
+    if (history.some(h => Math.abs(h.lat - roundedLat) < 0.0001 && Math.abs(h.lon - roundedLon) < 0.0001 && h.radius === Math.round(radius))) {
+      return
+    }
+    const label = await resolvePlaceName(roundedLat, roundedLon)
+    const entry: HistoryEntry = {
+      lat: roundedLat,
+      lon: roundedLon,
+      radius: Math.round(radius),
+      timestamp: new Date().toISOString(),
+      label: label || formatCoords(roundedLat, roundedLon)
+    }
+    setHistory(prev => {
+      const deduped = prev.filter(h => !(Math.abs(h.lat - entry.lat) < 0.0001 && Math.abs(h.lon - entry.lon) < 0.0001 && h.radius === entry.radius))
+      const next = [entry, ...deduped].slice(0, HISTORY_LIMIT)
+      try { localStorage.setItem(HISTORY_KEY, JSON.stringify(next)) } catch {}
+      return next
+    })
+  }
+
+  function restoreHistory(entry: HistoryEntry) {
+    setRadiusKm(entry.radius)
+    setPendingRadius(String(entry.radius))
+    if (lfMapRef.current) lfMapRef.current.setView([entry.lat, entry.lon], Math.max(lfMapRef.current.getZoom(), 13), { animate: true })
+    fetchNearbyAndRender(entry.lat, entry.lon, entry.radius)
+  }
+
+  const visibleSellers = useMemo(() => {
+    return sellerList.filter(seller => {
+      if (!matchesPriceFilter(seller.minPrice, priceFilter)) return false
+      if (recentOnly && !isRecent(seller.updatedAt)) return false
+      return true
+    })
+  }, [sellerList, priceFilter, recentOnly])
+
+  const hasActiveFilters = priceFilter !== 'all' || recentOnly
+
   return (
     React.createElement('div', { className: 'fs-map-shell' },
       React.createElement('div', { className: 'fs-map-card' },
@@ -266,8 +381,186 @@ export default function MapPage(): React.ReactElement {
         ),
         React.createElement('div', { className: 'fs-map-canvas-wrap' },
           React.createElement('div', { id: 'map', ref: mapRef, className: 'fs-map-canvas' })
+        ),
+        React.createElement('section', { className: 'fs-map-section' },
+          React.createElement('div', { className: 'fs-map-section-head' },
+            React.createElement('span', { className: 'fs-map-chip' }, 'Panoramica'),
+            React.createElement('h2', null, 'Attività nelle vicinanze'),
+            React.createElement('p', { className: 'fs-map-section-hint' }, 'Uno sguardo rapido a venditori e annunci entro il raggio selezionato.')
+          ),
+          React.createElement('div', { className: 'fs-map-summary' },
+            React.createElement('div', { className: 'fs-map-summary-item' },
+              React.createElement('span', null, 'Venditori vicini'),
+              React.createElement('strong', null, summary.sellers)
+            ),
+            React.createElement('div', { className: 'fs-map-summary-item' },
+              React.createElement('span', null, 'Annunci rilevati'),
+              React.createElement('strong', null, summary.items)
+            ),
+            React.createElement('div', { className: 'fs-map-summary-item' },
+              React.createElement('span', null, 'Ultimo aggiornamento'),
+              React.createElement('strong', null, summary.lastUpdate ? formatSummaryTimestamp(summary.lastUpdate) : '—')
+            )
+          ),
+          React.createElement('div', { className: 'fs-map-summary-badge', 'data-source': summary.source },
+            summary.source === 'api' ? 'Dati live API' : summary.source === 'local' ? 'Cache locale' : 'In attesa di dati'
+          )
+        ),
+        React.createElement('section', { className: 'fs-map-section' },
+          React.createElement('div', { className: 'fs-map-section-head' },
+            React.createElement('span', { className: 'fs-map-chip' }, 'Ricerca'),
+            React.createElement('h2', null, 'Affina risultati'),
+            React.createElement('p', { className: 'fs-map-section-hint' }, 'Filtra per budget o freschezza degli annunci e agisci rapidamente.')
+          ),
+          React.createElement('div', { className: 'fs-map-filters' },
+            React.createElement('div', { className: 'fs-map-filter-group' },
+              ['all', 'low', 'medium', 'high'].map(option => (
+                React.createElement('button', {
+                  key: option,
+                  type: 'button',
+                  className: 'fs-map-filter-chip' + (priceFilter === option ? ' active' : ''),
+                  onClick: () => setPriceFilter(option as 'all' | 'low' | 'medium' | 'high')
+                }, labelForPrice(option as 'all' | 'low' | 'medium' | 'high'))
+              ))
+            ),
+            React.createElement('div', { className: 'fs-map-filter-actions' },
+              React.createElement('label', { className: 'fs-map-toggle' },
+                React.createElement('input', {
+                  type: 'checkbox',
+                  checked: recentOnly,
+                  onChange: e => setRecentOnly(e.target.checked)
+                }),
+                React.createElement('span', null, 'Solo annunci recenti')
+              ),
+              hasActiveFilters ? React.createElement('button', { type: 'button', className: 'fs-map-reset', onClick: () => { setPriceFilter('all'); setRecentOnly(false) } }, 'Reset filtri') : null
+            )
+          ),
+          React.createElement('div', { className: 'fs-map-sellers-list' },
+            visibleSellers.length > 0
+              ? visibleSellers.map((seller, index) => (
+                React.createElement('div', { key: seller.seller_id || index, className: 'fs-map-seller-card' },
+                  React.createElement('div', { className: 'fs-map-seller-meta' },
+                    React.createElement('strong', null, seller.name || `Venditore #${seller.seller_id}`),
+                    typeof seller.distance_km === 'number' ? React.createElement('span', null, `${seller.distance_km.toFixed(1)} km`) : null
+                  ),
+                  React.createElement('div', { className: 'fs-map-seller-info' },
+                    seller.featuredItem ? React.createElement('p', null, seller.featuredItem) : null,
+                    typeof seller.minPrice === 'number' ? React.createElement('p', { className: 'fs-map-price' }, formatPrice(seller.minPrice)) : null,
+                    seller.updatedAt ? React.createElement('p', { className: 'fs-map-updated' }, relativeTimeLabel(seller.updatedAt)) : null
+                  ),
+                  React.createElement('div', { className: 'fs-map-seller-actions' },
+                    React.createElement('button', { type: 'button', onClick: () => focusOnSeller(seller.latitude, seller.longitude) }, 'Centra mappa'),
+                    React.createElement('button', { type: 'button', onClick: () => openSellerProfile(seller.seller_id) }, 'Apri profilo')
+                  )
+                ))
+              )
+              : React.createElement('p', { className: 'fs-map-seller-empty' }, hasActiveFilters ? 'Nessun venditore corrisponde ai filtri' : 'Nessun venditore trovato nel raggio attuale')
+          ),
+          React.createElement('div', { className: 'fs-map-cta' },
+            React.createElement('button', { type: 'button', className: 'fs-map-cta-primary', onClick: () => window.location.assign('/create') }, 'Pubblica un nuovo oggetto'),
+            React.createElement('button', { type: 'button', className: 'fs-map-cta-secondary', onClick: () => window.location.assign('/items') }, 'Apri ricerca avanzata')
+          )
+        ),
+        React.createElement('section', { className: 'fs-map-section fs-map-section-muted' },
+          React.createElement('div', { className: 'fs-map-section-head' },
+            React.createElement('span', { className: 'fs-map-chip' }, 'Strumenti'),
+            React.createElement('h2', null, 'Cronologia e consigli'),
+            React.createElement('p', { className: 'fs-map-section-hint' }, 'Riprendi una ricerca salvata oppure ottimizza il raggio con i suggerimenti rapidi.')
+          ),
+          React.createElement('div', { className: 'fs-map-bottom' },
+            React.createElement('div', { className: 'fs-map-history' },
+              React.createElement('div', { className: 'fs-map-history-header' },
+                React.createElement('strong', null, 'Ricerche recenti'),
+                history.length ? React.createElement('button', { type: 'button', onClick: clearHistoryState, className: 'fs-map-history-clear' }, 'Pulisci') : null
+              ),
+              history.length
+                ? history.map((entry, idx) => (
+                  React.createElement('button', { key: idx, type: 'button', className: 'fs-map-history-row', onClick: () => restoreHistory(entry) },
+                    React.createElement('span', null, entry.label || formatCoords(entry.lat, entry.lon)),
+                    React.createElement('span', null, `${entry.radius} km · ${relativeTimeLabel(entry.timestamp)}`)
+                  )
+                ))
+                : React.createElement('p', { className: 'fs-map-history-empty' }, 'Effettua una ricerca per salvare la posizione')
+            ),
+            React.createElement('div', { className: 'fs-map-tips' },
+              React.createElement('strong', null, 'Suggerimenti rapidi'),
+              React.createElement('ul', null,
+                React.createElement('li', null, 'Estendi il raggio quando viaggi tra città diverse'),
+                React.createElement('li', null, 'Attiva i filtri per trovare solo articoli del budget desiderato'),
+                React.createElement('li', null, 'Centra sulla tua posizione per aggiornare la bolla di ricerca')
+              )
+            )
+          )
         )
       )
     )
   )
+}
+
+function formatSummaryTimestamp(iso?: string) {
+  if (!iso) return ''
+  try {
+    const date = new Date(iso)
+    return date.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+  } catch {
+    return iso
+  }
+}
+
+async function resolvePlaceName(lat: number, lon: number): Promise<string | undefined> {
+  try {
+    const params = new URLSearchParams({ lat: String(lat), lon: String(lon) })
+    const res = await fetch('/api/geo/reverse?' + params.toString())
+    if (!res.ok) return undefined
+    const body = await res.json()
+    if (!body?.success || !body?.data) return undefined
+    return body.data.city || body.data.display_name || undefined
+  } catch {
+    return undefined
+  }
+}
+
+function formatCoords(lat: number, lon: number) {
+  return `${lat.toFixed(3)}, ${lon.toFixed(3)}`
+}
+
+function matchesPriceFilter(value: number | undefined, filter: 'all' | 'low' | 'medium' | 'high') {
+  if (filter === 'all' || typeof value !== 'number') return true
+  if (filter === 'low') return value < 50
+  if (filter === 'medium') return value >= 50 && value <= 150
+  return value > 150
+}
+
+function isRecent(iso?: string) {
+  if (!iso) return false
+  const now = Date.now()
+  const time = new Date(iso).getTime()
+  return !Number.isNaN(time) && now - time <= 1000 * 60 * 60 * 24 * 7
+}
+
+function labelForPrice(filter: 'all' | 'low' | 'medium' | 'high') {
+  if (filter === 'low') return '< 50€'
+  if (filter === 'medium') return '50-150€'
+  if (filter === 'high') return '> 150€'
+  return 'Tutti'
+}
+
+function relativeTimeLabel(iso: string) {
+  const time = new Date(iso).getTime()
+  if (Number.isNaN(time)) return ''
+  const diff = Date.now() - time
+  const minutes = Math.floor(diff / 60000)
+  if (minutes < 60) return `Aggiornato ${minutes} min fa`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `Aggiornato ${hours} h fa`
+  const days = Math.floor(hours / 24)
+  return `Aggiornato ${days} g fa`
+}
+
+function formatPrice(value: number) {
+  try {
+    return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value)
+  } catch {
+    return `${value}€`
+  }
 }
