@@ -124,7 +124,6 @@ export default function Header(): React.ReactElement {
                 'div',
                 { className: 'fs-profile-dropdown' },
                 React.createElement('button', { type: 'button', className: 'fs-profile-option', onClick: goToAccount }, 'Account'),
-                React.createElement('button', { type: 'button', className: 'fs-profile-option', onClick: () => { closeMenu(); navigate('/map') } }, 'Mappa'),
                 React.createElement('button', { type: 'button', className: 'fs-profile-option logout', onClick: logoutFromMenu }, 'Esci')
               ) : null
             )

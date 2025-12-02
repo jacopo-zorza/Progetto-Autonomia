@@ -80,7 +80,7 @@
 .fs-title { font-size:1.5rem; margin:0; color:#111827; font-weight:800; }
 .fs-sub { margin:0; color:#6b7280; }
 .fs-search { display:flex; width:100%; max-width:820px; gap:0.5rem; margin-top:0.5rem; }
-.fs-search-location-wrap { position:relative; flex:0 0 auto; }
+.fs-search-location-wrap { position:relative; flex:0 0 auto; display:flex; align-items:center; gap:0.5rem; }
 .fs-search-location {
   display:flex;
   align-items:center;
@@ -99,38 +99,26 @@
 .fs-search-location.active { border-color:#0f766e; box-shadow:0 6px 16px rgba(15,118,110,0.12); }
 .fs-search-location-icon { font-size:1rem; line-height:1; }
 .fs-search-location-label { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; }
-.fs-location-popover {
-  position:absolute;
-  top:calc(100% + 0.4rem);
-  left:0;
-  z-index:80;
-  width:260px;
-  background:#ffffff;
-  border:1px solid rgba(15,23,42,0.12);
-  border-radius:12px;
-  box-shadow:0 18px 38px rgba(15,23,42,0.18);
-  padding:0.9rem;
-  display:flex;
-  flex-direction:column;
-  gap:0.65rem;
-}
-.fs-location-label { font-size:0.85rem; font-weight:600; color:#0f172a; }
-.fs-location-input { width:100%; padding:0.55rem 0.75rem; border-radius:8px; border:1px solid #d1d5db; outline:none; box-sizing:border-box; }
-.fs-location-input:focus { border-color:#0f766e; box-shadow:0 0 0 3px rgba(15,118,110,0.14); }
-.fs-location-actions { display:flex; justify-content:space-between; gap:0.5rem; }
-.fs-location-clear,
-.fs-location-apply {
-  flex:1;
-  padding:0.45rem 0.75rem;
-  border-radius:8px;
-  border:1px solid transparent;
-  cursor:pointer;
-  font-weight:600;
-}
-.fs-location-clear { background:#f1f5f9; color:#0f172a; border-color:#e2e8f0; }
-.fs-location-clear:hover { background:#e2e8f0; }
-.fs-location-apply { background:#0f766e; color:#fff; }
-.fs-location-apply:hover { background:#0d5f59; }
+.fs-location-reset { margin-left:0.5rem; border:none; background:none; color:#ef4444; font-weight:600; cursor:pointer; }
+.fs-location-reset:hover { text-decoration:underline; }
+.fs-location-overlay { z-index:1200; }
+.fs-location-modal { max-width:720px; width:100%; display:flex; flex-direction:column; gap:1rem; padding:1.75rem; }
+.fs-location-head { display:flex; align-items:center; justify-content:space-between; gap:0.75rem; }
+.fs-location-title { margin:0; font-size:1.3rem; color:#0f172a; font-weight:700; }
+.fs-location-close { border:none; background:none; font-size:1.5rem; line-height:1; cursor:pointer; color:#64748b; }
+.fs-location-close:hover { color:#0f172a; }
+.fs-location-hint { margin:0; color:#475569; font-size:0.95rem; }
+.fs-location-map { width:100%; height:340px; border:1px solid rgba(15,23,42,0.12); border-radius:18px; overflow:hidden; background:#f1f5f9; }
+.fs-location-status { font-size:0.95rem; color:#0369a1; font-weight:600; }
+.fs-location-label { font-size:0.9rem; color:#0f172a; font-weight:600; }
+.fs-location-error { margin:0; color:#dc2626; font-weight:600; }
+.fs-location-actions { display:flex; gap:0.75rem; justify-content:flex-end; flex-wrap:wrap; }
+.fs-location-secondary { border:1px solid #cbd5f5; background:#f8fafc; color:#0f172a; padding:0.65rem 1.1rem; border-radius:0.75rem; font-weight:600; cursor:pointer; }
+.fs-location-secondary:disabled { cursor:wait; opacity:0.6; }
+.fs-location-secondary:hover:not(:disabled) { background:#e2e8f0; }
+.fs-location-primary { border:none; background:linear-gradient(135deg,#0f766e,#16a34a); color:#fff; padding:0.7rem 1.4rem; border-radius:0.85rem; font-weight:700; cursor:pointer; box-shadow:0 12px 28px rgba(15,118,110,0.35); }
+.fs-location-primary:disabled { cursor:wait; opacity:0.65; box-shadow:none; }
+.fs-location-primary:hover:not(:disabled) { box-shadow:0 16px 32px rgba(15,118,110,0.4); }
 .fs-search-input { flex:1; padding:0.75rem 1rem; border-radius:9999px; border:1px solid #e5e7eb; outline:none; box-sizing:border-box; }
 .fs-search-btn { background:#111827; color:#fff; padding:0.6rem 1rem; border-radius:9999px; border:none; cursor:pointer; }
 
@@ -164,5 +152,12 @@
 .fs-cta { margin-top:1rem; }
 .fs-cta-inner { display:flex; align-items:center; justify-content:space-between; gap:1rem; background:#111827; color:#fff; padding:1rem; border-radius:8px; }
 .fs-cta-btn { background:#fff; color:#111827; padding:0.6rem 1rem; border-radius:8px; text-decoration:none; }
+
+@media (max-width: 640px) {
+  .fs-location-modal { padding:1.25rem; }
+  .fs-location-map { height:280px; }
+  .fs-location-actions { flex-direction:column; align-items:stretch; }
+  .fs-location-secondary, .fs-location-primary { width:100%; text-align:center; }
+}
 
 
