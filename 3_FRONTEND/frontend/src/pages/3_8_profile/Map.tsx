@@ -99,6 +99,19 @@ export default function MapPage(): React.ReactElement {
   const nearbyMarkersRef = useRef<Record<string, any>>({})
 
   useEffect(() => {
+    if (!advancedSearchOpen) return
+    const previousOverflow = document.body.style.overflow
+    const previousPadding = document.body.style.paddingRight
+    const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth
+    document.body.style.overflow = 'hidden'
+    if (scrollBarWidth > 0) document.body.style.paddingRight = `${scrollBarWidth}px`
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.body.style.paddingRight = previousPadding
+    }
+  }, [advancedSearchOpen])
+
+  useEffect(() => {
     let watchId: number | null = null
     let refreshInterval: any = null
 
@@ -641,35 +654,59 @@ export default function MapPage(): React.ReactElement {
       advancedSearchOpen
         ? React.createElement('div', { className: 'fs-map-advanced-overlay', role: 'dialog', 'aria-modal': 'true' },
             React.createElement('div', { className: 'fs-map-advanced-card' },
-              React.createElement('button', { type: 'button', className: 'fs-map-advanced-close', onClick: closeAdvancedSearchDialog, 'aria-label': 'Chiudi ricerca avanzata' }, 'x'),
-              React.createElement('h3', null, 'Ricerca avanzata personalizzata'),
-              React.createElement('p', { className: 'fs-map-advanced-subtitle' }, 'Scegli qualsiasi località e un raggio dedicato per esplorare venditori e annunci.'),
+              React.createElement('button', { type: 'button', className: 'fs-map-advanced-close', onClick: closeAdvancedSearchDialog, 'aria-label': 'Chiudi ricerca avanzata' }, '×'),
+              React.createElement('div', { className: 'fs-map-advanced-hero' },
+                React.createElement('span', { className: 'fs-map-advanced-pill' }, 'Esperienza FastSeller'),
+                React.createElement('h3', null, 'Ricerca avanzata su misura'),
+                React.createElement('p', null, 'Seleziona città, quartiere o indirizzo e restringi il raggio per trovare venditori di fiducia nelle tue zone preferite.'),
+                React.createElement('div', { className: 'fs-map-advanced-highlights' },
+                  React.createElement('span', null, '📍 Città, indirizzo o punto di interesse'),
+                  React.createElement('span', null, '🛰️ Coordinate precise in tempo reale'),
+                  React.createElement('span', null, '🛒 Mercatini e community locali')
+                )
+              ),
               React.createElement('form', { className: 'fs-map-advanced-form', onSubmit: submitAdvancedSearch },
-                React.createElement('label', { className: 'fs-map-advanced-label', htmlFor: 'fs-adv-location' }, 'Località'),
-                React.createElement('input', {
-                  id: 'fs-adv-location',
-                  type: 'text',
-                  value: advancedQuery,
-                  onChange: e => setAdvancedQuery(e.target.value),
-                  placeholder: 'Es. Rovereto, Piazza Duomo',
-                  className: 'fs-map-advanced-input',
-                  autoComplete: 'off',
-                  autoFocus: true
-                }),
-                React.createElement('label', { className: 'fs-map-advanced-label', htmlFor: 'fs-adv-radius' }, 'Raggio (km)'),
-                React.createElement('input', {
-                  id: 'fs-adv-radius',
-                  type: 'number',
-                  min: 1,
-                  max: 500,
-                  value: advancedRadius,
-                  onChange: e => setAdvancedRadius(clampRadiusValue(Number(e.target.value))),
-                  className: 'fs-map-advanced-input'
-                }),
-                React.createElement('button', { type: 'submit', className: 'fs-map-advanced-searchbtn', disabled: advancedLoading }, advancedLoading ? 'Ricerca in corso...' : 'Cerca località')
+                React.createElement('div', { className: 'fs-map-advanced-grid' },
+                  React.createElement('label', { className: 'fs-map-advanced-field', htmlFor: 'fs-adv-location' },
+                    React.createElement('span', { className: 'fs-map-advanced-label' }, 'Località da esplorare'),
+                    React.createElement('div', { className: 'fs-map-advanced-inputwrap' },
+                      React.createElement('span', { className: 'fs-map-advanced-icon' }, '📍'),
+                      React.createElement('input', {
+                        id: 'fs-adv-location',
+                        type: 'text',
+                        value: advancedQuery,
+                        onChange: e => setAdvancedQuery(e.target.value),
+                        placeholder: 'Es. Milano Isola, Piazza Duomo, Navigli...',
+                        className: 'fs-map-advanced-input',
+                        autoComplete: 'off',
+                        autoFocus: true
+                      })
+                    )
+                  ),
+                  React.createElement('label', { className: 'fs-map-advanced-field', htmlFor: 'fs-adv-radius' },
+                    React.createElement('span', { className: 'fs-map-advanced-label' }, 'Raggio personalizzato'),
+                    React.createElement('div', { className: 'fs-map-advanced-inputwrap' },
+                      React.createElement('span', { className: 'fs-map-advanced-icon' }, '🌀'),
+                      React.createElement('input', {
+                        id: 'fs-adv-radius',
+                        type: 'number',
+                        min: 1,
+                        max: 500,
+                        value: advancedRadius,
+                        onChange: e => setAdvancedRadius(clampRadiusValue(Number(e.target.value))),
+                        className: 'fs-map-advanced-input'
+                      }),
+                      React.createElement('span', { className: 'fs-map-advanced-unit' }, 'km')
+                    )
+                  )
+                ),
+                React.createElement('div', { className: 'fs-map-advanced-actions' },
+                  React.createElement('button', { type: 'button', className: 'fs-map-advanced-ghost', onClick: closeAdvancedSearchDialog }, 'Annulla'),
+                  React.createElement('button', { type: 'submit', className: 'fs-map-advanced-searchbtn', disabled: advancedLoading }, advancedLoading ? 'Sto cercando...' : 'Lancia ricerca')
+                )
               ),
               advancedError ? React.createElement('p', { className: 'fs-map-advanced-error' }, advancedError) : null,
-              !advancedResults.length && !advancedLoading ? React.createElement('p', { className: 'fs-map-advanced-placeholder' }, 'Inserisci una città o un indirizzo completo, poi premi su "Cerca località".') : null,
+              !advancedResults.length && !advancedLoading ? React.createElement('p', { className: 'fs-map-advanced-placeholder' }, 'Inserisci una città o un indirizzo completo e lascia che FastSeller trovi i venditori più vicini.') : null,
               advancedLoading ? React.createElement('p', { className: 'fs-map-advanced-placeholder' }, 'Sto cercando i risultati migliori...') : null,
               advancedResults.length ? React.createElement('ul', { className: 'fs-map-advanced-results' },
                 advancedResults.map((result, idx) => (

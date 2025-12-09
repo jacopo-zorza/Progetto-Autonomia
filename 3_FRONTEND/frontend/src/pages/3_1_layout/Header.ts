@@ -108,6 +108,7 @@ export default function Header(): React.ReactElement {
           React.createElement(React.Fragment, null,
             React.createElement(Link, { to: '/' , className: 'fs-nav-link' }, 'Home'),
             React.createElement(Link, { to: '/items', className: 'fs-nav-link' }, 'Oggetti'),
+            React.createElement(Link, { to: '/map', className: 'fs-nav-link' }, 'Mappa'),
             React.createElement(
               'div',
               { className: 'fs-profile-area', ref: menuRef },
