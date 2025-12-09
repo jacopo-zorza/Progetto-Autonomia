@@ -24,6 +24,14 @@ type HistoryEntry = {
   label?: string
 }
 
+type AddressSuggestion = {
+  display_name: string
+  latitude: number
+  longitude: number
+  importance?: number
+  address?: Record<string, unknown>
+}
+
 // Simple Leaflet loader using CDN to avoid changing package.json
 function loadLeaflet(): Promise<any> {
   return new Promise((resolve, reject) => {
@@ -69,6 +77,10 @@ export default function MapPage(): React.ReactElement {
   const userMarkerRef = useRef<any | null>(null)
   const radiusCircleRef = useRef<any | null>(null)
   const lastCoordsRef = useRef<{ lat: number, lon: number } | null>(null)
+  const radiusRef = useRef(DEFAULT_RADIUS_KM)
+  const userCoordsRef = useRef<{ lat: number, lon: number } | null>(null)
+  const manualSearchRef = useRef(false)
+  const skipRadiusFetchRef = useRef(false)
   const [status, setStatus] = useState<string>('Caricamento mappa...')
   const [radiusKm, setRadiusKm] = useState<number>(DEFAULT_RADIUS_KM)
   const [pendingRadius, setPendingRadius] = useState<string>(String(DEFAULT_RADIUS_KM))
@@ -77,6 +89,13 @@ export default function MapPage(): React.ReactElement {
   const [priceFilter, setPriceFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all')
   const [recentOnly, setRecentOnly] = useState<boolean>(false)
   const [history, setHistory] = useState<HistoryEntry[]>([])
+  const [advancedSearchOpen, setAdvancedSearchOpen] = useState(false)
+  const [advancedQuery, setAdvancedQuery] = useState('')
+  const [advancedRadius, setAdvancedRadius] = useState<number>(DEFAULT_RADIUS_KM)
+  const [advancedResults, setAdvancedResults] = useState<AddressSuggestion[]>([])
+  const [advancedLoading, setAdvancedLoading] = useState(false)
+  const [advancedError, setAdvancedError] = useState<string | null>(null)
+  const [manualSearchLabel, setManualSearchLabel] = useState<string | null>(null)
   const nearbyMarkersRef = useRef<Record<string, any>>({})
 
   useEffect(() => {
@@ -109,9 +128,16 @@ export default function MapPage(): React.ReactElement {
           const lat = pos.coords.latitude
           const lon = pos.coords.longitude
           const accuracy = pos.coords.accuracy
-          lastCoordsRef.current = { lat, lon }
+          userCoordsRef.current = { lat, lon }
 
-          setStatus(`Posizione aggiornata (±${Math.round(accuracy)} m) · raggio ${radiusKm} km`)
+          if (manualSearchRef.current) {
+            // Conserva la posizione reale per l'utente ma non sovrascrivere la ricerca manuale
+            return
+          }
+
+          lastCoordsRef.current = { lat, lon }
+          setManualSearchLabel(null)
+          setStatus(`Posizione aggiornata (±${Math.round(accuracy)} m) · raggio ${radiusRef.current} km`)
 
           if (!lfMapRef.current) return
 
@@ -123,7 +149,7 @@ export default function MapPage(): React.ReactElement {
             })
             userMarkerRef.current = L.marker([lat, lon], { icon: userIcon }).addTo(lfMapRef.current)
             radiusCircleRef.current = L.circle([lat, lon], {
-              radius: radiusKm * 1000,
+              radius: radiusRef.current * 1000,
               color: '#2563eb',
               fillColor: '#60a5fa',
               fillOpacity: 0.12,
@@ -133,11 +159,11 @@ export default function MapPage(): React.ReactElement {
             lfMapRef.current.setView([lat, lon], 13)
           } else {
             userMarkerRef.current.setLatLng([lat, lon])
-            if (radiusCircleRef.current) radiusCircleRef.current.setLatLng([lat, lon]).setRadius(radiusKm * 1000)
+            if (radiusCircleRef.current) radiusCircleRef.current.setLatLng([lat, lon]).setRadius(radiusRef.current * 1000)
           }
 
           // Aggiorna markers vicini
-          fetchNearbyAndRender(lat, lon, radiusKm)
+          fetchNearbyAndRender(lat, lon, radiusRef.current)
         }
 
         function onError(err: GeolocationPositionError) {
@@ -148,9 +174,8 @@ export default function MapPage(): React.ReactElement {
 
         // refresh nearby every 10s in case other users move
         refreshInterval = setInterval(() => {
-          if (!userMarkerRef.current) return
-          const latlng = userMarkerRef.current.getLatLng()
-          fetchNearbyAndRender(latlng.lat, latlng.lng, radiusKm)
+          if (!lastCoordsRef.current) return
+          fetchNearbyAndRender(lastCoordsRef.current.lat, lastCoordsRef.current.lon, radiusRef.current)
         }, 10000)
       } catch (e: any) {
         setStatus('Impossibile caricare la mappa: ' + (e?.message || e))
@@ -283,8 +308,13 @@ export default function MapPage(): React.ReactElement {
   }
 
   useEffect(() => {
+    radiusRef.current = radiusKm
     if (!radiusCircleRef.current || !lastCoordsRef.current) return
     radiusCircleRef.current.setLatLng([lastCoordsRef.current.lat, lastCoordsRef.current.lon]).setRadius(radiusKm * 1000)
+    if (skipRadiusFetchRef.current) {
+      skipRadiusFetchRef.current = false
+      return
+    }
     fetchNearbyAndRender(lastCoordsRef.current.lat, lastCoordsRef.current.lon, radiusKm)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [radiusKm])
@@ -293,14 +323,26 @@ export default function MapPage(): React.ReactElement {
     if (event) event.preventDefault()
     const parsed = Number(pendingRadius)
     if (!Number.isFinite(parsed)) return
-    const clamped = Math.min(500, Math.max(1, Math.round(parsed)))
+    const clamped = clampRadiusValue(parsed)
     setPendingRadius(String(clamped))
     if (clamped !== radiusKm) setRadiusKm(clamped)
   }
 
   function centerOnUser() {
-    if (!lfMapRef.current || !lastCoordsRef.current) return
-    lfMapRef.current.setView([lastCoordsRef.current.lat, lastCoordsRef.current.lon], lfMapRef.current.getZoom(), { animate: true })
+    if (!lfMapRef.current) return
+    const coords = userCoordsRef.current
+    if (!coords) {
+      setStatus('Posizione utente non disponibile, attiva il GPS per centrare la mappa')
+      return
+    }
+    manualSearchRef.current = false
+    setManualSearchLabel(null)
+    lastCoordsRef.current = { lat: coords.lat, lon: coords.lon }
+    if (userMarkerRef.current) userMarkerRef.current.setLatLng([coords.lat, coords.lon])
+    if (radiusCircleRef.current) radiusCircleRef.current.setLatLng([coords.lat, coords.lon]).setRadius(radiusRef.current * 1000)
+    lfMapRef.current.setView([coords.lat, coords.lon], Math.max(lfMapRef.current.getZoom(), 13), { animate: true })
+    setStatus(`Tornato alla tua posizione · raggio ${radiusRef.current} km`)
+    fetchNearbyAndRender(coords.lat, coords.lon, radiusRef.current)
   }
 
   function focusOnSeller(lat?: number, lon?: number) {
@@ -345,6 +387,108 @@ export default function MapPage(): React.ReactElement {
     setPendingRadius(String(entry.radius))
     if (lfMapRef.current) lfMapRef.current.setView([entry.lat, entry.lon], Math.max(lfMapRef.current.getZoom(), 13), { animate: true })
     fetchNearbyAndRender(entry.lat, entry.lon, entry.radius)
+  }
+
+  function openAdvancedSearchDialog() {
+    setAdvancedSearchOpen(true)
+    setAdvancedQuery('')
+    setAdvancedResults([])
+    setAdvancedError(null)
+    setAdvancedRadius(radiusRef.current)
+  }
+
+  function closeAdvancedSearchDialog() {
+    if (advancedLoading) return
+    setAdvancedSearchOpen(false)
+    setAdvancedError(null)
+  }
+
+  async function submitAdvancedSearch(event?: React.FormEvent) {
+    if (event) event.preventDefault()
+    const query = advancedQuery.trim()
+    if (query.length < 3) {
+      setAdvancedError('Inserisci almeno 3 caratteri per la località desiderata')
+      setAdvancedResults([])
+      return
+    }
+    setAdvancedLoading(true)
+    setAdvancedError(null)
+    try {
+      const params = new URLSearchParams({ q: query, limit: '5' })
+      const res = await fetch('/api/geo/search?' + params.toString())
+      const body = await res.json()
+      if (!res.ok || !body?.success) {
+        setAdvancedResults([])
+        setAdvancedError(body?.message || 'Impossibile completare la ricerca')
+        return
+      }
+      const results = Array.isArray(body.results) ? body.results : []
+      const normalized: AddressSuggestion[] = results.map((item: any) => ({
+        display_name: String(item.display_name || item.label || 'Posizione trovata'),
+        latitude: typeof item.latitude === 'number' ? item.latitude : Number(item.lat ?? item.latitude),
+        longitude: typeof item.longitude === 'number' ? item.longitude : Number(item.lon ?? item.longitude),
+        importance: typeof item.importance === 'number' ? item.importance : undefined,
+        address: item.address || undefined
+      })).filter(s => Number.isFinite(s.latitude) && Number.isFinite(s.longitude))
+      setAdvancedResults(normalized)
+      if (!normalized.length) setAdvancedError('Nessun risultato trovato, prova a specificare meglio la località')
+    } catch (error) {
+      setAdvancedResults([])
+      setAdvancedError(error instanceof Error ? error.message : 'Errore imprevisto durante la ricerca')
+    } finally {
+      setAdvancedLoading(false)
+    }
+  }
+
+  async function applyAdvancedResult(option: AddressSuggestion) {
+    if (!lfMapRef.current) {
+      setStatus('La mappa non è pronta, attendi qualche secondo e riprova')
+      return
+    }
+    const lat = Number(option.latitude)
+    const lon = Number(option.longitude)
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+      setAdvancedError('Coordinate non valide per il risultato selezionato')
+      return
+    }
+    const clampedRadius = clampRadiusValue(advancedRadius)
+    setAdvancedRadius(clampedRadius)
+    setPendingRadius(String(clampedRadius))
+    skipRadiusFetchRef.current = true
+    manualSearchRef.current = true
+    setManualSearchLabel(truncateLabel(option.display_name))
+    lastCoordsRef.current = { lat, lon }
+    setAdvancedSearchOpen(false)
+
+    const L = (window as any).L
+    if (!userMarkerRef.current) {
+      const userIcon = L.icon({
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41]
+      })
+      userMarkerRef.current = L.marker([lat, lon], { icon: userIcon }).addTo(lfMapRef.current)
+    } else {
+      userMarkerRef.current.setLatLng([lat, lon])
+    }
+
+    if (!radiusCircleRef.current) {
+      radiusCircleRef.current = L.circle([lat, lon], {
+        radius: clampedRadius * 1000,
+        color: '#2563eb',
+        fillColor: '#60a5fa',
+        fillOpacity: 0.12,
+        weight: 2,
+        dashArray: '6 8'
+      }).addTo(lfMapRef.current)
+    } else {
+      radiusCircleRef.current.setLatLng([lat, lon]).setRadius(clampedRadius * 1000)
+    }
+
+    lfMapRef.current.setView([lat, lon], Math.max(lfMapRef.current.getZoom(), 12), { animate: true })
+    setStatus(`Ricerca avanzata su ${truncateLabel(option.display_name)} · raggio ${clampedRadius} km`)
+    await fetchNearbyAndRender(lat, lon, clampedRadius)
+    setRadiusKm(clampedRadius)
   }
 
   const visibleSellers = useMemo(() => {
@@ -458,8 +602,9 @@ export default function MapPage(): React.ReactElement {
           ),
           React.createElement('div', { className: 'fs-map-cta' },
             React.createElement('button', { type: 'button', className: 'fs-map-cta-primary', onClick: () => window.location.assign('/create') }, 'Pubblica un nuovo oggetto'),
-            React.createElement('button', { type: 'button', className: 'fs-map-cta-secondary', onClick: () => window.location.assign('/items') }, 'Apri ricerca avanzata')
-          )
+            React.createElement('button', { type: 'button', className: 'fs-map-cta-secondary', onClick: openAdvancedSearchDialog }, 'Apri ricerca avanzata')
+          ),
+          manualSearchLabel ? React.createElement('p', { className: 'fs-map-manual-hint' }, `Ricerca manuale attiva su ${manualSearchLabel}`) : null
         ),
         React.createElement('section', { className: 'fs-map-section fs-map-section-muted' },
           React.createElement('div', { className: 'fs-map-section-head' },
@@ -492,7 +637,54 @@ export default function MapPage(): React.ReactElement {
             )
           )
         )
-      )
+      ),
+      advancedSearchOpen
+        ? React.createElement('div', { className: 'fs-map-advanced-overlay', role: 'dialog', 'aria-modal': 'true' },
+            React.createElement('div', { className: 'fs-map-advanced-card' },
+              React.createElement('button', { type: 'button', className: 'fs-map-advanced-close', onClick: closeAdvancedSearchDialog, 'aria-label': 'Chiudi ricerca avanzata' }, 'x'),
+              React.createElement('h3', null, 'Ricerca avanzata personalizzata'),
+              React.createElement('p', { className: 'fs-map-advanced-subtitle' }, 'Scegli qualsiasi località e un raggio dedicato per esplorare venditori e annunci.'),
+              React.createElement('form', { className: 'fs-map-advanced-form', onSubmit: submitAdvancedSearch },
+                React.createElement('label', { className: 'fs-map-advanced-label', htmlFor: 'fs-adv-location' }, 'Località'),
+                React.createElement('input', {
+                  id: 'fs-adv-location',
+                  type: 'text',
+                  value: advancedQuery,
+                  onChange: e => setAdvancedQuery(e.target.value),
+                  placeholder: 'Es. Rovereto, Piazza Duomo',
+                  className: 'fs-map-advanced-input',
+                  autoComplete: 'off',
+                  autoFocus: true
+                }),
+                React.createElement('label', { className: 'fs-map-advanced-label', htmlFor: 'fs-adv-radius' }, 'Raggio (km)'),
+                React.createElement('input', {
+                  id: 'fs-adv-radius',
+                  type: 'number',
+                  min: 1,
+                  max: 500,
+                  value: advancedRadius,
+                  onChange: e => setAdvancedRadius(clampRadiusValue(Number(e.target.value))),
+                  className: 'fs-map-advanced-input'
+                }),
+                React.createElement('button', { type: 'submit', className: 'fs-map-advanced-searchbtn', disabled: advancedLoading }, advancedLoading ? 'Ricerca in corso...' : 'Cerca località')
+              ),
+              advancedError ? React.createElement('p', { className: 'fs-map-advanced-error' }, advancedError) : null,
+              !advancedResults.length && !advancedLoading ? React.createElement('p', { className: 'fs-map-advanced-placeholder' }, 'Inserisci una città o un indirizzo completo, poi premi su "Cerca località".') : null,
+              advancedLoading ? React.createElement('p', { className: 'fs-map-advanced-placeholder' }, 'Sto cercando i risultati migliori...') : null,
+              advancedResults.length ? React.createElement('ul', { className: 'fs-map-advanced-results' },
+                advancedResults.map((result, idx) => (
+                  React.createElement('li', { key: `${result.latitude}-${result.longitude}-${idx}`, className: 'fs-map-advanced-result' },
+                    React.createElement('div', { className: 'fs-map-advanced-result-body' },
+                      React.createElement('strong', null, truncateLabel(result.display_name, 80)),
+                      formatSuggestionAddress(result.address) ? React.createElement('span', null, formatSuggestionAddress(result.address)) : null
+                    ),
+                    React.createElement('button', { type: 'button', onClick: () => applyAdvancedResult(result) }, 'Usa questa località')
+                  )
+                ))
+              ) : null
+            )
+          )
+        : null
     )
   )
 }
@@ -563,4 +755,20 @@ function formatPrice(value: number) {
   } catch {
     return `${value}€`
   }
+}
+
+function clampRadiusValue(value: number) {
+  if (!Number.isFinite(value)) return DEFAULT_RADIUS_KM
+  return Math.min(500, Math.max(1, Math.round(value)))
+}
+
+function truncateLabel(value: string, max = 60) {
+  if (!value) return ''
+  return value.length > max ? value.slice(0, max - 1) + '...' : value
+}
+
+function formatSuggestionAddress(address?: Record<string, unknown>) {
+  if (!address) return ''
+  const data = address as Record<string, any>
+  return data.city || data.town || data.village || data.country || ''
 }
