@@ -1,3 +1,4 @@
+// Modello dati per simulare il checkout lato client durante la demo.
 export type CheckoutPayload = {
   itemId: string
   amount: number
@@ -25,12 +26,15 @@ export type OrderRecord = CheckoutPayload & {
 
 const KEY = 'pa_orders'
 
+// Persistiamo gli ordini nel localStorage per poterli mostrare in dashboard.
+
 function read(): OrderRecord[] {
   const raw = localStorage.getItem(KEY)
   return raw ? JSON.parse(raw) : []
 }
 
 function write(orders: OrderRecord[]) {
+  // Ogni ordine viene salvato subito per evitare la perdita di dati in caso di refresh.
   localStorage.setItem(KEY, JSON.stringify(orders))
 }
 

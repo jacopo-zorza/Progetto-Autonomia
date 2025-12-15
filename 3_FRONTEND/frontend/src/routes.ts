@@ -22,6 +22,7 @@ import Support from './pages/3_10_support/Support'
 import VirtualAssistant from './pages/3_10_support/VirtualAssistant'
 
 export default function Router(): React.ReactElement {
+  // Definisce la mappa delle pagine e incapsula le rotte protette tramite PrivateRoute.
   return React.createElement(
     BrowserRouter,
     null,

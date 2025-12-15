@@ -8,6 +8,7 @@ type ConfirmDialogProps = {
 }
 
 export default function ConfirmDialog(props: ConfirmDialogProps): React.ReactElement | null {
+  // Non renderizziamo il modal se non è aperto per evitare overlay inutili.
   if (!props.open) return null
 
   function stop(event: React.MouseEvent<HTMLDivElement>) {

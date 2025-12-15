@@ -5,6 +5,8 @@ import { useNavigate, Link } from 'react-router-dom'
 import { listItems, Item } from '../../services/items'
 import ConfirmDialog from '../../components/ConfirmDialog'
 
+// Dashboard utente con gestione profilo, annunci personali e logout protetto.
+
 type PersonalForm = {
   username: string
   email: string
@@ -43,12 +45,14 @@ export default function Dashboard(): React.ReactElement {
   // input file will be referenced by id to avoid ref warnings
 
   useEffect(() => {
+    // Mantiene la dashboard sincronizzata intercettando gli eventi di login/logout.
     function onAuth(){ setCurUser(getUser()) }
     window.addEventListener('auth-changed', onAuth)
     return () => window.removeEventListener('auth-changed', onAuth)
   }, [])
 
   useEffect(() => {
+    // Resetta il form quando si esce dalla modalità di modifica.
     if (showPersonalEdit) return
     setPersonalForm({
       username: resolveUsernameValue(curUser),
@@ -60,6 +64,7 @@ export default function Dashboard(): React.ReactElement {
   }, [curUser, showPersonalEdit])
 
   useEffect(() => {
+    // Recupera gli annunci pubblicati dall'utente corrente.
     let cancelled = false
 
     async function loadMyItems() {
@@ -120,6 +125,7 @@ export default function Dashboard(): React.ReactElement {
   }
 
   function onFile(e: React.ChangeEvent<HTMLInputElement>){
+    // Aggiorna l'avatar caricando l'immagine in base64 e inviandola al servizio auth.
     const f = e.target.files && e.target.files[0]
     if(!f) return
     const reader = new FileReader()
@@ -167,6 +173,7 @@ export default function Dashboard(): React.ReactElement {
   }
 
   async function onPersonalSubmit(event: React.FormEvent<HTMLFormElement>){
+    // Valida e invia i dati anagrafici aggiornati all'endpoint profilo.
     event.preventDefault()
     if (personalSaving) return
 

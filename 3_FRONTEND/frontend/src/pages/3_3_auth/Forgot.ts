@@ -1,6 +1,8 @@
 import React from 'react'
 import '../../styles/pages/auth.css'
 
+// Pagina informativa per guidare l'utente al recupero credenziali via supporto.
+
 export default function Forgot(): React.ReactElement {
   return React.createElement(
     'div',

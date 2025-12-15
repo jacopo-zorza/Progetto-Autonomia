@@ -3,6 +3,8 @@ import '../../styles/pages/auth.css'
 import { useNavigate } from 'react-router-dom'
 import { login } from '../../services/auth'
 
+// Pagina login con fallback grafico e chiamata al servizio auth simulato.
+
 export default function Login(): React.ReactElement {
   const navigate = useNavigate()
   const [email, setEmail] = React.useState('')
@@ -12,6 +14,7 @@ export default function Login(): React.ReactElement {
 
   function onSubmit(e: React.FormEvent){
     e.preventDefault()
+    // Autentica l'utente e reindirizza alla dashboard in caso di successo.
     // Se vuoi provare la parte grafica senza chiamata al backend, commenta la riga sottostante
     login(email, password).then(ok => {
       if(ok) navigate('/dashboard')

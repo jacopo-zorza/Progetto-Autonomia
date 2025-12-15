@@ -1,5 +1,7 @@
 import React from 'react'
 
+// Messaggio di fallback per rotte non esistenti.
+
 export default function NotFound(): React.ReactElement {
   return React.createElement(
     'div',

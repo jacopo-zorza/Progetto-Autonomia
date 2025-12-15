@@ -1,6 +1,8 @@
 import React from 'react'
 import '../../styles/pages/careers.css'
 
+// Pagina carriere puramente statica per presentare il team e raccogliere candidature.
+
 export default function Careers(): React.ReactElement {
   return React.createElement(
     'main',

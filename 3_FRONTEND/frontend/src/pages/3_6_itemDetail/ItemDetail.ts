@@ -4,6 +4,8 @@ import { getItem, listItems, Item, deleteItem, isItemOwnedByUser } from '../../s
 import { getUser } from '../../services/auth'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 
+// Vista dettaglio annuncio con suggerimenti e azioni per il proprietario.
+
 export default function ItemDetail(): React.ReactElement {
   const { id } = useParams()
   const [item, setItem] = React.useState<Item | undefined>(undefined)
@@ -14,6 +16,7 @@ export default function ItemDetail(): React.ReactElement {
   const user = React.useMemo(() => getUser(), [])
 
   React.useEffect(() => {
+    // Carica l'annuncio e preleva altri articoli per mostrare suggerimenti contestuali.
     if (!id) {
       setError('Oggetto non trovato')
       setLoading(false)
@@ -75,6 +78,7 @@ export default function ItemDetail(): React.ReactElement {
   const isOwner = isItemOwnedByUser(item, user)
 
   async function handleDelete() {
+    // Permette al venditore di rimuovere l'annuncio senza uscire dalla pagina.
     if (!item) return
     if (!window.confirm('Vuoi davvero eliminare questo annuncio?')) return
     try {

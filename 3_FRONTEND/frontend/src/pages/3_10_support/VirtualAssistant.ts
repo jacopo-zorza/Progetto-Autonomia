@@ -2,6 +2,8 @@ import React from 'react'
 import { generateAssistantReply, ChatMessage } from '../../services/supportAssistant'
 import '../../styles/pages/support-ai.css'
 
+// Chatbot statico che usa risposte predefinite per simulare un assistente.
+
 function createInitialMessages(): ChatMessage[] {
   return [{ role: 'assistant', content: generateAssistantReply([]) }]
 }
@@ -22,6 +24,7 @@ export default function VirtualAssistant(): React.ReactElement {
   }, [messages, isTyping])
 
   function handleSubmit(event: React.FormEvent) {
+    // Aggiunge il messaggio dell'utente e genera una replica fittizia con un piccolo delay.
     event.preventDefault()
     const trimmed = input.trim()
     if (!trimmed) return

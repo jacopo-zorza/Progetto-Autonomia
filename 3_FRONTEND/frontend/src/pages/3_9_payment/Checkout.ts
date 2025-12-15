@@ -5,6 +5,8 @@ import { getItem, Item } from '../../services/items'
 import { createOrder, OrderRecord } from '../../services/payments'
 import { getUser, getWalletBalance, adjustWalletBalance } from '../../services/auth'
 
+// Flusso checkout simulato con calcolo totale, saldo wallet e recap ordine.
+
 type FormState = {
   fullName: string
   email: string
@@ -60,6 +62,7 @@ export default function Checkout(): React.ReactElement {
   const [walletBalance, setWalletBalance] = React.useState(0)
 
   React.useEffect(() => {
+    // Carica i dettagli dell'annuncio da acquistare e gestisce gli errori di fetch.
     if (!id) {
       setLoadError('Oggetto non disponibile')
       setLoadingItem(false)
@@ -99,6 +102,7 @@ export default function Checkout(): React.ReactElement {
   }, [id])
 
   React.useEffect(() => {
+    // Reinizializza il form quando cambia l'articolo o il saldo utente.
     setForm(buildInitialForm())
     setWalletBalance(getWalletBalance())
     setErrors([])
@@ -107,6 +111,7 @@ export default function Checkout(): React.ReactElement {
   }, [id])
 
   React.useEffect(() => {
+    // Tieni sincronizzato il saldo portafoglio quando l'utente effettua altre operazioni.
     setWalletBalance(getWalletBalance())
     function handleAuthChange() {
       setWalletBalance(getWalletBalance())
@@ -178,6 +183,7 @@ export default function Checkout(): React.ReactElement {
   }
 
   function handleSubmit(event: React.FormEvent) {
+    // Valida i campi, registra l'ordine e gestisce il saldo wallet in modo transazionale.
     event.preventDefault()
     if (!item) {
       setErrors(['Oggetto non disponibile.'])

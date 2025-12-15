@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 
 export default function Footer(): React.ReactElement {
   const e = React.createElement
+  // Footer informativo con link rapidi e richiami alle store badge.
   return e(
     'footer',
     { className: 'fs-footer' },

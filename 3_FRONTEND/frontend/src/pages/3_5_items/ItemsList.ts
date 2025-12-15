@@ -4,6 +4,8 @@ import { listItems, Item, deleteItem, isItemOwnedByUser } from '../../services/i
 import { Link } from 'react-router-dom'
 import { getUser } from '../../services/auth'
 
+// Lista annunci con azioni di gestione per il proprietario autenticato.
+
 export default function ItemsList(): React.ReactElement {
   const [items, setItems] = React.useState<Item[]>([])
   const [loading, setLoading] = React.useState(true)
@@ -11,6 +13,7 @@ export default function ItemsList(): React.ReactElement {
   const currentUser = React.useMemo(() => getUser(), [])
 
   const loadItems = React.useCallback(async () => {
+    // Recupera gli articoli e gestisce messaggi d'errore user-friendly.
     setLoading(true)
     setError(null)
     try {

@@ -1,3 +1,4 @@
+// Risposte deterministiche per simulare l'assistente senza dipendere da un servizio esterno.
 export type ChatMessage = {
   role: 'user' | 'assistant'
   content: string

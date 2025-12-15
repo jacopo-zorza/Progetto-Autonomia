@@ -5,6 +5,7 @@ import { isAuthenticated } from '../services/auth'
 type Props = { children: React.ReactNode }
 
 export default function PrivateRoute({ children }: Props): React.ReactElement | null {
+  // Reindirizza gli utenti anonimi verso la schermata di login.
   if (!isAuthenticated()) {
     return React.createElement(Navigate, { to: '/login' })
   }

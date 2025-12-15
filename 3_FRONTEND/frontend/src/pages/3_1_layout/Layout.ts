@@ -3,6 +3,7 @@ import Header from './Header'
 import Footer from './Footer'
 
 export default function Layout({ children }: { children: React.ReactNode }): React.ReactElement {
+  // Struttura pagina standard con header fisso, contenuto centrale e footer coerente.
   return React.createElement(
     'div',
     { className: 'min-h-screen flex flex-col' },

@@ -3,6 +3,8 @@ import '../../styles/pages/auth.css'
 import { useNavigate } from 'react-router-dom'
 import { register } from '../../services/auth'
 
+// Schermata di registrazione con fallback locale in caso di backend non raggiungibile.
+
 export default function Register(): React.ReactElement {
   const navigate = useNavigate()
   const [username, setUsername] = React.useState('')

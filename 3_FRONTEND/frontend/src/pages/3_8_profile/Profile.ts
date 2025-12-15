@@ -2,6 +2,8 @@ import React from 'react'
 import '../../styles/pages/account.css'
 import { getUser } from '../../services/auth'
 
+// Vista compatta per mostrare rapidamente le info principali dell'account.
+
 export default function Profile(): React.ReactElement {
   const user = getUser()
 

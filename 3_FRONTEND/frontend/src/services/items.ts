@@ -1,5 +1,9 @@
 import { getAccessToken } from './auth'
 
+// Wrapper client per gli endpoint degli annunci con fallback e normalizzazione dati.
+
+// Tipi e utilità per normalizzare gli annunci provenienti dal backend (o da mock MSW).
+
 export type Item = {
   id: string
   title: string
@@ -34,6 +38,8 @@ function normalizePrice(value: any): number | undefined {
 }
 
 function mapApiItem(data: ApiItem): Item {
+  // Converte l'oggetto grezzo dell'API in un Item coerente per il frontend.
+  // Converte la risposta eterogenea dell'API in un modello coerente lato UI.
   const idValue = data?.id ?? data?.item_id
   const sellerId = data?.seller_id ?? data?.sellerId
   const username = data?.seller_username ?? data?.sellerUsername ?? null
@@ -66,6 +72,7 @@ function mapApiItem(data: ApiItem): Item {
 }
 
 async function fetchJson(url: string, options: RequestInit = {}): Promise<any> {
+  // Wrapper fetch che uniforma la gestione degli errori HTTP e payload JSON.
   const response = await fetch(url, options)
   const contentType = response.headers.get('content-type') || ''
   const body = contentType.includes('application/json') ? await response.json().catch(() => ({})) : {}
@@ -82,6 +89,7 @@ async function fetchJson(url: string, options: RequestInit = {}): Promise<any> {
 }
 
 function withAuth(options: RequestInit = {}): RequestInit {
+  // Inserisce automaticamente il token JWT corrente nelle richieste protette.
   const token = getAccessToken()
   if (!token) {
     throw new Error('Autenticazione richiesta')
@@ -100,6 +108,7 @@ function withAuth(options: RequestInit = {}): RequestInit {
 }
 
 function toApiPayload(data: Partial<Omit<Item, 'id'>>): Record<string, unknown> {
+  // Filtra solo i campi supportati dall'API e normalizza il formato.
   const payload: Record<string, unknown> = {}
 
   if (data.title !== undefined) payload.title = data.title
@@ -137,6 +146,7 @@ type ListItemsOptions = {
 }
 
 function buildQuery(options: ListItemsOptions = {}): string {
+  // Serializza i filtri in querystring compatibile con il backend Flask.
   const params = new URLSearchParams()
 
   if (options.search) params.set('search', options.search)

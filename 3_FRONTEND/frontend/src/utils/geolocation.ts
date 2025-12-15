@@ -1,9 +1,11 @@
+// Utility per gestire caricamento Leaflet e calcoli geografici nel frontend.
 const LEAFLET_CSS_ID = 'leaflet-css'
 const LEAFLET_JS_ID = 'leaflet-js'
 
 export const DEFAULT_CENTER = { lat: 45.4642, lon: 9.19 } as const
 
 export async function loadLeaflet(): Promise<any> {
+  // Lazy load degli asset Leaflet solo quando la mappa è necessario.
   if (typeof window !== 'undefined' && (window as any).L) {
     return (window as any).L
   }
@@ -28,6 +30,7 @@ export async function loadLeaflet(): Promise<any> {
 }
 
 async function ensureLeafletAssets(): Promise<void> {
+  // Inserisce dinamicamente CSS e JS di Leaflet se non già presenti.
   if (typeof document === 'undefined') return
 
   if (!document.getElementById(LEAFLET_CSS_ID)) {
@@ -74,6 +77,7 @@ export async function resolvePlaceName(lat: number, lon: number): Promise<string
 }
 
 export function haversineDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  // Formula dell'haversine: distanza approssimata in km fra due coordinate.
   const toRad = (value: number) => (value * Math.PI) / 180
   const R = 6371
   const dLat = toRad(lat2 - lat1)

@@ -1,8 +1,10 @@
+// Chiavi di storage locale usate per simulare la persistenza lato client.
 const AUTH_KEY = 'pa_auth'
 
 const USERS_KEY = 'pa_users'
 
 function readUsers(): any[] {
+  // Recupera l'elenco utenti salvato localmente per supportare il fallback.
   const raw = localStorage.getItem(USERS_KEY)
   return raw ? JSON.parse(raw) : []
 }
@@ -19,6 +21,7 @@ function sanitizeWalletValue(value: any): number {
 }
 
 function ensureWallet(user: any) {
+  // Normalizza il saldo portafoglio evitando valori negativi o NaN.
   if (!user) return user
   const nextBalance = sanitizeWalletValue(user.walletBalance)
   if (user.walletBalance === nextBalance) return user
@@ -26,6 +29,7 @@ function ensureWallet(user: any) {
 }
 
 function syncUserRecord(user: any) {
+  // Aggiorna la cache locale utente in modo da rileggere dati coerenti dopo update.
   if (!user || !user.id) return
   const users = readUsers()
   const index = users.findIndex(u => u.id === user.id)
@@ -39,6 +43,7 @@ function syncUserRecord(user: any) {
 }
 
 async function createLocalUser(payload: any){
+  // Genera un account locale quando il backend non risponde.
   const users = readUsers()
   const newUser = {
     id: `${Date.now()}_${Math.random().toString(36).slice(2,9)}`,
@@ -58,6 +63,7 @@ async function createLocalUser(payload: any){
 }
 
 async function saveAuth(data: any){
+  // Persistiamo i token simulati e notifichiamo gli altri componenti dell'app.
   const sanitizedUser = ensureWallet(data?.user)
   const payload = sanitizedUser ? { ...data, user: sanitizedUser } : data
   // salva token e user in localStorage
@@ -108,6 +114,7 @@ export async function updateUserProfile(updates: Record<string, any>){
   }
 
   try {
+    // Fallback offline: aggiorna soltanto la copia locale.
     const auth = JSON.parse(raw)
     const merged = { ...(auth.user || {}), ...normalizedUpdates }
     const user = ensureWallet(merged)
@@ -193,6 +200,7 @@ export function getWalletBalance(): number {
 }
 
 export function adjustWalletBalance(delta: number): number | null {
+  // Aggiorna il saldo e notifica i listener solo se il risultato resta valido.
   const raw = localStorage.getItem(AUTH_KEY)
   if(!raw) return null
   try{

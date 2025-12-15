@@ -38,6 +38,7 @@ export default function Header(): React.ReactElement {
   }
 
   useEffect(() => {
+    // Aggiorna stato locale ogni volta che l'auth cambia (login/logout provenienti da altre viste).
     function onAuth(){
       const nextAuth = isAuthenticated()
       setAuthState(nextAuth)
@@ -57,6 +58,7 @@ export default function Header(): React.ReactElement {
   useEffect(() => { setAvatarBroken(false) }, [user?.id, user?.profile_image])
 
   useEffect(() => {
+    // Chiude il dropdown cliccando fuori quando il menu è aperto.
     if (!showMenu) return
     function handleClickOutside(event: MouseEvent) {
       if (!menuRef.current) return

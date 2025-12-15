@@ -6,8 +6,11 @@ import { getUser } from '../../services/auth'
 import { listFavorites, toggleFavorite } from '../../services/favorites'
 import { DEFAULT_CENTER, formatCoords, haversineDistanceKm, loadLeaflet, resolvePlaceName } from '../../utils/geolocation'
 
+// Homepage con ricerca, filtri per posizione e gestione preferiti in locale.
+
 const GEO_RADIUS_KM = 50
 
+// Dataset di backup per mostrare contenuti quando l'API non restituisce risultati.
 const FALLBACK_ITEMS: Item[] = [
   { id: 'demo-1', title: 'Giacca invernale', description: 'Calda, usata una stagione', price: 45, owner: 'luca', ownerName: 'Luca', category: 'Abbigliamento', condition: 'Usato', location: 'Milano' },
   { id: 'demo-2', title: 'Borsa in pelle', description: 'Vintage, ottime condizioni', price: 60, owner: 'martina', ownerName: 'Martina', category: 'Abbigliamento', condition: 'Come nuova', location: 'Torino' },
@@ -43,6 +46,7 @@ export default function Home(): React.ReactElement {
   const lastReverseGeocodeRef = useRef<number>(0)
 
   useEffect(() => {
+    // Carichiamo gli annunci al mount e ripristiniamo il fallback se la chiamata fallisce.
     let cancelled = false
 
     async function loadItems() {
@@ -72,6 +76,7 @@ export default function Home(): React.ReactElement {
   }, [])
 
   const categories = useMemo(() => {
+    // Categorie base + dinamiche, includendo la vista preferiti se disponibile.
     const base = new Set<string>()
     base.add('Abbigliamento')
     base.add('Elettronica')
@@ -92,6 +97,7 @@ export default function Home(): React.ReactElement {
   const favoriteIds = useMemo(() => new Set(favorites), [favorites])
 
   useEffect(() => {
+    // Mantiene sincronizzati i preferiti fra tab diverse usando eventi custom.
     function syncFavorites() {
       setFavorites(listFavorites(currentUser))
     }
@@ -149,6 +155,7 @@ export default function Home(): React.ReactElement {
   }, [items, query, activeCategory, favorites, isWithinActiveRadius])
 
   const updateMarkerOnMap = useCallback((lat: number, lon: number, options?: { focus?: boolean }) => {
+    // Aggiorna marker e raggio sulla mappa Leaflet evitando duplicazioni di layer.
     const map = mapInstanceRef.current
     const L = typeof window !== 'undefined' ? (window as any).L : undefined
     if (!map || !L) return
@@ -183,6 +190,7 @@ export default function Home(): React.ReactElement {
   }, [])
 
   const handleSelection = useCallback((lat: number, lon: number, options?: { focus?: boolean }) => {
+    // Memorizza la selezione provvisoria e prova a risolvere il nome della località.
     updateMarkerOnMap(lat, lon, options)
     setLocationError(null)
     setLocationPending({ lat, lon })
@@ -230,6 +238,7 @@ export default function Home(): React.ReactElement {
   }
 
   async function locateUser() {
+    // Richiede i permessi al browser e posiziona il marker sull'utente.
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
       setLocationError('Geolocalizzazione non supportata dal browser')
       return
@@ -274,6 +283,7 @@ export default function Home(): React.ReactElement {
   }
 
   async function applyLocationSelection() {
+    // Applica la selezione sulla mappa richiamando l'API con i filtri geografici.
     if (!locationPending) {
       setLocationError('Seleziona una posizione sulla mappa prima di applicare')
       return
@@ -303,6 +313,7 @@ export default function Home(): React.ReactElement {
   }
 
   async function clearLocationFilter() {
+    // Ripristina la lista completa eliminando marker e cerchio dal layer mappa.
     setLocationFilter(null)
     setLocationPending(null)
     setLocationPendingLabel('')
@@ -333,6 +344,7 @@ export default function Home(): React.ReactElement {
   }
 
   useEffect(() => {
+    // Inizializza Leaflet solo quando il modal è aperto per ridurre il costo di bootstrap.
     if (!showLocationModal) return
 
     let cancelled = false
@@ -386,6 +398,7 @@ export default function Home(): React.ReactElement {
   }, [showLocationModal, handleSelection, locationFilter, locationPending])
 
   useEffect(() => {
+    // Mantiene in sync il marker quando cambiano le coordinate scelte durante il modal aperto.
     if (!showLocationModal) return
     if (!locationPending) return
     updateMarkerOnMap(locationPending.lat, locationPending.lon, { focus: false })

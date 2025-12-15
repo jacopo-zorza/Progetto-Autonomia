@@ -4,6 +4,8 @@ import '../../styles/pages/create.css'
 import { getItem, updateItem, deleteItem, isItemOwnedByUser, Item } from '../../services/items'
 import { getUser } from '../../services/auth'
 
+// Modulo di modifica che riutilizza la preview live e controlla la proprietà dell'annuncio.
+
 const categories = ['Abbigliamento', 'Elettronica', 'Casa', 'Sport', 'Bambini', 'Libri', 'Collezionismo', 'Motori', 'Altro']
 const conditions = ['Nuovo', 'Come nuovo', 'Ottimo', 'Buono', 'Usato']
 
@@ -30,6 +32,7 @@ export default function EditItem(): React.ReactElement {
   const fileInputRef = React.useRef<HTMLInputElement | null>(null)
 
   React.useEffect(() => {
+    // Carica i dati dell'annuncio e popola il form all'apertura della pagina.
     if (!id) {
       setLoadError('Annuncio non trovato')
       setLoadingItem(false)
@@ -81,6 +84,7 @@ export default function EditItem(): React.ReactElement {
   }
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    // Riutilizza la stessa logica di upload del create con validazione dimensione.
     const file = event.target.files && event.target.files[0]
     if (!file) {
       setImageData(null)
@@ -104,6 +108,7 @@ export default function EditItem(): React.ReactElement {
   }
 
   function validate(): string[] {
+    // Verifica i principali campi obbligatori prima di inviare l'update.
     const issues: string[] = []
     if (!title.trim()) issues.push('Inserisci un titolo')
     if (!desc.trim()) issues.push('Aggiungi una descrizione')
@@ -117,6 +122,7 @@ export default function EditItem(): React.ReactElement {
   }
 
   async function onSubmit(event: React.FormEvent) {
+    // Salva le modifiche sul backend e torna alla pagina di dettaglio.
     event.preventDefault()
     if (!item || !id) return
     const issues = validate()
@@ -153,6 +159,7 @@ export default function EditItem(): React.ReactElement {
   }
 
   async function handleDelete() {
+    // Consente al proprietario di eliminare definitivamente l'annuncio.
     if (!item || !id) return
     const confirmDelete = window.confirm('Vuoi davvero eliminare questo annuncio? L\'operazione non può essere annullata.')
     if (!confirmDelete) return

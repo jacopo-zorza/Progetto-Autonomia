@@ -2,6 +2,8 @@ type FavoritedStore = Record<string, string[]>
 
 const KEY = 'pa_favorites'
 
+// Gestione delle liste preferiti su localStorage per supportare l'uso offline.
+
 function read(): FavoritedStore {
   const raw = localStorage.getItem(KEY)
   if (!raw) return {}
@@ -14,6 +16,7 @@ function read(): FavoritedStore {
 }
 
 function write(store: FavoritedStore) {
+  // Propaga un evento globale così le viste si aggiornano in tempo reale.
   localStorage.setItem(KEY, JSON.stringify(store))
   try {
     window.dispatchEvent(new Event('favorites-changed'))
@@ -27,6 +30,7 @@ function normalizeIds(list: Iterable<string>): string[] {
 }
 
 function resolveOwnerKey(user: any): string {
+  // Usa info dell'utente quando disponibile, altrimenti registra il visitatore come guest.
   if (user && typeof user === 'object') {
     if (user.id) return `user:${user.id}`
     if (user.email) return `email:${user.email}`

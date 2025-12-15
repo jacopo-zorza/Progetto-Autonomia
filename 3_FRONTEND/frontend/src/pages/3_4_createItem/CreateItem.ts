@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom'
 import '../../styles/pages/create.css'
 import { DEFAULT_CENTER, formatCoords, loadLeaflet, resolvePlaceName } from '../../utils/geolocation'
 
+// Form di pubblicazione con selezione geolocalizzata e anteprima live dell'annuncio.
+
 const categories = ['Abbigliamento', 'Elettronica', 'Casa', 'Sport', 'Bambini', 'Libri', 'Collezionismo', 'Motori', 'Altro']
 const conditions = ['Nuovo', 'Come nuovo', 'Ottimo', 'Buono', 'Usato']
 
@@ -48,6 +50,7 @@ export default function CreateItem(): React.ReactElement {
   }, [currentUser])
 
   const applySelection = React.useCallback((lat: number, lon: number, options?: { skipFly?: boolean }) => {
+    // Posiziona il marker e risolve l'indirizzo quando l'utente clicca sulla mappa.
     const map = mapInstanceRef.current
     const L = typeof window !== 'undefined' ? (window as any).L : undefined
     if (!map || !L) return
@@ -90,6 +93,7 @@ export default function CreateItem(): React.ReactElement {
   }, [])
 
   const locateFromBrowser = React.useCallback(async () => {
+    // Chiede la posizione corrente al browser e richiama applySelection.
     if (!mapReady) {
       setLocationError('La mappa non è ancora pronta, riprova tra pochi secondi')
       return
@@ -144,6 +148,7 @@ export default function CreateItem(): React.ReactElement {
   }, [applySelection, mapReady])
 
   React.useEffect(() => {
+    // Inizializzazione Lazy della mappa Leaflet all'apertura del form.
     let cancelled = false
 
     async function initMap() {
@@ -199,6 +204,7 @@ export default function CreateItem(): React.ReactElement {
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    // Gestisce l'anteprima lato client validando dimensione e formato.
     const file = e.target.files && e.target.files[0]
     if (!file) {
       setImageData(null)
@@ -222,6 +228,7 @@ export default function CreateItem(): React.ReactElement {
   }
 
   async function onSubmit(e: React.FormEvent) {
+    // Valida i campi essenziali e invia l'annuncio al servizio items.
     e.preventDefault()
     const trimmedTitle = title.trim()
     const trimmedDesc = desc.trim()

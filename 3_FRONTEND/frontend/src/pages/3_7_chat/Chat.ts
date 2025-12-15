@@ -3,6 +3,8 @@ import { getUser } from '../../services/auth'
 import { getMessages, sendMessage } from '../../services/messages'
 import { useParams } from 'react-router-dom'
 
+// Chat dimostrativa che persiste i messaggi nel localStorage condiviso.
+
 export default function Chat(): React.ReactElement {
   const { conv } = useParams()
   const [messages, setMessages] = React.useState(getMessages(conv || 'global'))
@@ -10,6 +12,7 @@ export default function Chat(): React.ReactElement {
   const user = getUser()
 
   function doSend(e?: any){
+    // Inserisce il messaggio e ricarica la conversazione corrente.
     if(e) e.preventDefault()
     if(!text) return
     sendMessage(conv || 'global', user?.user || 'anon', text)

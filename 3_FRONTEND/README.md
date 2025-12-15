@@ -2,7 +2,7 @@
 
 Sviluppo interfaccia utente:
 - HTML/CSS responsive
-- JavaScript interactions
+- TypeScript interactions
 - Framework integrations
 - Mobile-first design
 - PWA capabilities

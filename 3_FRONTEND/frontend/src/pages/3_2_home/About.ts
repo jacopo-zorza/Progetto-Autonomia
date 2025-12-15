@@ -1,5 +1,7 @@
 import React from 'react'
 import '../../styles/pages/about.css'
+
+// Pagina istituzionale che racconta missione e funzionalità principali della demo.
 import { Link } from 'react-router-dom'
 
 export default function About(): React.ReactElement {

@@ -2,6 +2,8 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import '../../styles/pages/support.css'
 
+// Pagina supporto con riferimenti rapidi a contatti email e assistente virtuale.
+
 export default function Support(): React.ReactElement {
   return React.createElement(
     'div',
